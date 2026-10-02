@@ -110,11 +110,20 @@ export default function LoginPage() {
       <div className="lg:w-1/2 flex flex-col justify-between p-8 sm:p-12 lg:p-16 relative overflow-hidden bg-gradient-to-br from-[#1c0f08] via-[#160c06] to-[#0f0703] border-b lg:border-b-0 lg:border-r border-[#2d180d]">
         <div className="relative z-10">
           <div className="flex items-center gap-3.5 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#c49756] to-[#8c5621] border border-[#d49952]/40 flex items-center justify-center text-white font-black text-lg shadow-sm">
-              S
-            </div>
+            <img
+              src="/sanket-logo.png"
+              alt="SANKET Emblem"
+              className="w-12 h-12 object-contain filter drop-shadow-[0_0_14px_rgba(196,151,86,0.45)]"
+            />
             <div>
-              <div className="text-[#f7ebd7] font-black text-xl tracking-wider leading-none">SANKET</div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#f7ebd7] font-black text-xl tracking-wider leading-none font-mono">
+                  SANKET
+                </span>
+                <span className="text-[10px] font-bold text-[#c49756] tracking-widest uppercase bg-[#2e190e] border border-[#522f18] px-1.5 py-0.5 rounded">
+                  संकेत
+                </span>
+              </div>
               <div className="text-[#967756] text-[10px] mt-1 tracking-widest uppercase font-bold">
                 Financial Investigation Console
               </div>
