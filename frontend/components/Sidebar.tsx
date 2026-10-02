@@ -44,18 +44,27 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        "flex flex-col bg-[#1c0f08] text-[#d4b896] transition-all duration-300 ease-in-out flex-shrink-0 relative",
+        "flex flex-col bg-[#1c0f08] text-[#d4b896] transition-all duration-300 ease-in-out flex-shrink-0 relative overflow-hidden",
         "border-r border-[#311b10] select-none",
         isSidebarCollapsed ? "w-14" : "w-56"
       )}
     >
+      {/* Background subtle gold network curves */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.14] overflow-hidden" xmlns="http://www.w3.org/2000/svg">
+        <path d="M-20,140 Q80,260 50,400 T110,600" fill="none" stroke="#d49952" strokeWidth="0.8" />
+        <path d="M80,60 Q150,180 90,320" fill="none" stroke="#d49952" strokeWidth="0.6" strokeDasharray="3 4" />
+        <circle cx="50" cy="400" r="2" fill="#f59e0b" />
+        <circle cx="90" cy="320" r="1.8" fill="#f59e0b" />
+        <circle cx="105" cy="580" r="1.8" fill="#f59e0b" />
+      </svg>
+
       {/* ─── Branding ────────────────────────────────────── */}
       <div className={cn(
-        "flex items-center py-5 px-4 border-b border-[#2b170c] flex-shrink-0",
+        "flex items-center py-5 px-4 border-b border-[#2b170c] flex-shrink-0 relative z-10",
         isSidebarCollapsed ? "justify-center" : "gap-3"
       )}>
         {/* Logo mark */}
-        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-[#c17f3a] to-[#8c5621] border border-[#d49952]/40 flex items-center justify-center font-bold text-white text-sm shadow-sm">
+        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-[#c17f3a] to-[#8c5621] border border-[#d49952]/60 flex items-center justify-center font-bold text-white text-sm shadow-[0_0_14px_rgba(212,153,82,0.32)]">
           S
         </div>
         {!isSidebarCollapsed && (
@@ -158,16 +167,16 @@ function NavButton({
       onClick={onClick}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "w-full flex items-center rounded-xl transition-all duration-200 text-xs font-medium focus:outline-none relative",
+        "w-full flex items-center rounded-xl transition-all duration-200 text-xs font-medium focus:outline-none relative group cursor-pointer",
         collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
         active
-          ? "bg-gradient-to-r from-[#442612] to-[#30190b] text-[#faf3ea] border border-[#c49756]/50 shadow-md shadow-black/20"
-          : "text-[#8c6e4e] hover:bg-[#28150c] hover:text-[#d4b896]"
+          ? "bg-gradient-to-r from-[#482813] to-[#341b0e] text-[#fef8f0] border border-[#d49952]/70 shadow-[0_0_18px_rgba(212,153,82,0.25)] ring-1 ring-[#c49756]/30"
+          : "text-[#9c7e5e] hover:bg-[#28150c] hover:text-[#e8d5be] border border-transparent"
       )}
     >
       <span className={cn(
         "flex-shrink-0 transition-transform",
-        active ? "text-[#e5be85] scale-105" : "text-[#8c6e4e]"
+        active ? "text-[#f59e0b] scale-105 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "text-[#8c6e4e] group-hover:text-[#c49756]"
       )}>
         {item.icon}
       </span>
