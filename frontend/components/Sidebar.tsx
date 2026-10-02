@@ -2,9 +2,9 @@
 import { useSanketStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import {
-  Search, LayoutDashboard, GitBranch, Clock, List, Shield, FileText,
+  Search, GitBranch, Clock, List, Shield, FileText,
   Snowflake, FileSearch, BarChart3, Lock, ChevronLeft, ChevronRight,
-  Settings, LogOut, User
+  Settings, LogOut
 } from "lucide-react";
 
 type NavItem = {
@@ -28,35 +28,46 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export default function Sidebar() {
-  const { isSidebarCollapsed, toggleSidebar, activeNav, setActiveNav, investigatorName, logout } = useSanketStore();
+  const {
+    isSidebarCollapsed, toggleSidebar, activeNav, setActiveNav,
+    investigatorName, logout, investigation, setActiveTab
+  } = useSanketStore();
+
+  const handleNavClick = (id: string) => {
+    setActiveNav(id as any);
+    // If user clicks a tab like graph/timeline and an investigation exists, set active tab too
+    if (["graph", "timeline", "transactions", "evidence", "reports"].includes(id)) {
+      setActiveTab(id as any);
+    }
+  };
 
   return (
     <aside
       className={cn(
-        "flex flex-col bg-[#2c1810] text-[#d4b896] transition-all duration-300 ease-in-out flex-shrink-0 relative",
-        "border-r border-[#3d2518]",
+        "flex flex-col bg-[#1c0f08] text-[#d4b896] transition-all duration-300 ease-in-out flex-shrink-0 relative",
+        "border-r border-[#311b10] select-none",
         isSidebarCollapsed ? "w-14" : "w-56"
       )}
     >
       {/* ─── Branding ────────────────────────────────────── */}
       <div className={cn(
-        "flex items-center py-5 px-4 border-b border-[#3d2518] flex-shrink-0",
+        "flex items-center py-5 px-4 border-b border-[#2b170c] flex-shrink-0",
         isSidebarCollapsed ? "justify-center" : "gap-3"
       )}>
         {/* Logo mark */}
-        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#c17f3a] flex items-center justify-center font-bold text-white text-sm">
+        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-[#c17f3a] to-[#8c5621] border border-[#d49952]/40 flex items-center justify-center font-bold text-white text-sm shadow-sm">
           S
         </div>
         {!isSidebarCollapsed && (
           <div>
-            <div className="text-[#f0e0c8] font-bold text-base tracking-wide leading-none">SANKET</div>
-            <div className="text-[#8c6e4e] text-[10px] mt-0.5 leading-tight">Financial Investigation<br />Console</div>
+            <div className="text-[#f7ebd7] font-bold text-base tracking-wide leading-none">SANKET</div>
+            <div className="text-[#967756] text-[10px] mt-1 leading-tight font-medium">Financial Investigation<br />Console</div>
           </div>
         )}
       </div>
 
       {/* ─── Navigation ──────────────────────────────────── */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
         {/* Main items */}
         {NAV_ITEMS.filter(n => n.section === "main").map(item => (
           <NavButton
@@ -64,19 +75,19 @@ export default function Sidebar() {
             item={item}
             active={activeNav === item.id}
             collapsed={isSidebarCollapsed}
-            onClick={() => setActiveNav(item.id as any)}
+            onClick={() => handleNavClick(item.id)}
           />
         ))}
 
         {/* Tools divider */}
         {!isSidebarCollapsed && (
-          <div className="pt-4 pb-1 px-2">
-            <span className="text-[10px] text-[#5c3d2a] uppercase tracking-widest font-medium">
+          <div className="pt-5 pb-1.5 px-3">
+            <span className="text-[10px] text-[#9c7b5a] uppercase tracking-widest font-semibold">
               Investigative Tools
             </span>
           </div>
         )}
-        {isSidebarCollapsed && <div className="border-t border-[#3d2518] my-2 mx-1" />}
+        {isSidebarCollapsed && <div className="border-t border-[#2b170c] my-2 mx-1" />}
 
         {/* Tool items */}
         {NAV_ITEMS.filter(n => n.section === "tools").map(item => (
@@ -85,15 +96,15 @@ export default function Sidebar() {
             item={item}
             active={activeNav === item.id}
             collapsed={isSidebarCollapsed}
-            onClick={() => setActiveNav(item.id as any)}
+            onClick={() => handleNavClick(item.id)}
           />
         ))}
       </nav>
 
       {/* ─── Brand tagline (collapsed: hidden) ───────────── */}
       {!isSidebarCollapsed && (
-        <div className="px-4 py-3 border-t border-b border-[#3d2518]">
-          <div className="text-[9px] text-[#5c3d2a] uppercase tracking-widest leading-relaxed space-y-0.5">
+        <div className="px-4 py-3 border-t border-[#2b170c]">
+          <div className="text-[9px] text-[#6e5138] uppercase tracking-widest leading-relaxed space-y-0.5 font-medium">
             <div>TRACE · ANALYSE</div>
             <div>DISRUPT · PROTECT</div>
           </div>
@@ -102,25 +113,25 @@ export default function Sidebar() {
 
       {/* ─── Investigator Profile ─────────────────────────── */}
       <div className={cn(
-        "flex items-center gap-2 p-3 border-t border-[#3d2518]",
+        "flex items-center gap-2.5 p-3 border-t border-[#2b170c] bg-[#170c06]/60",
         isSidebarCollapsed && "justify-center"
       )}>
-        <div className="w-7 h-7 rounded-full bg-[#c17f3a] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+        <div className="w-8 h-8 rounded-full bg-[#311b10] border border-[#c49756]/50 flex items-center justify-center text-[#f2e2ce] text-xs font-bold flex-shrink-0 shadow-xs">
           {investigatorName.charAt(0).toUpperCase()}
         </div>
         {!isSidebarCollapsed && (
           <div className="flex-1 min-w-0">
-            <div className="text-[#d4b896] text-xs font-medium truncate">{investigatorName}</div>
-            <div className="text-[#5c3d2a] text-[10px]">Investigator</div>
+            <div className="text-[#e8d2b8] text-xs font-medium truncate">{investigatorName.toLowerCase().replace(/\s+/g, "")}</div>
+            <div className="text-[#876a4e] text-[10px]">Investigator</div>
           </div>
         )}
         {!isSidebarCollapsed && (
-          <div className="flex gap-1">
-            <button className="text-[#5c3d2a] hover:text-[#d4b896] transition-colors p-1 rounded">
-              <Settings size={12} />
+          <div className="flex gap-0.5">
+            <button className="text-[#7a5c3e] hover:text-[#d4b896] transition-colors p-1 rounded" title="Settings">
+              <Settings size={13} />
             </button>
-            <button onClick={logout} className="text-[#5c3d2a] hover:text-[#c0392b] transition-colors p-1 rounded" title="Logout">
-              <LogOut size={12} />
+            <button onClick={logout} className="text-[#7a5c3e] hover:text-[#c0392b] transition-colors p-1 rounded" title="Sign Out">
+              <LogOut size={13} />
             </button>
           </div>
         )}
@@ -129,7 +140,7 @@ export default function Sidebar() {
       {/* ─── Collapse Toggle ─────────────────────────────── */}
       <button
         onClick={toggleSidebar}
-        className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-[#2c1810] border border-[#3d2518] text-[#8c6e4e] hover:text-[#d4b896] flex items-center justify-center transition-colors shadow-md z-10"
+        className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-[#23140b] border border-[#3d2415] text-[#9c7a57] hover:text-[#f0dfc8] flex items-center justify-center transition-colors shadow-md z-10"
         aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isSidebarCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
@@ -147,17 +158,20 @@ function NavButton({
       onClick={onClick}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "w-full flex items-center rounded-lg transition-all duration-200 text-sm font-medium focus:outline-none",
+        "w-full flex items-center rounded-xl transition-all duration-200 text-xs font-medium focus:outline-none relative",
         collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
         active
-          ? "bg-[#5c3d1e] text-[#f0e0c8] shadow-sm"
-          : "text-[#8c6e4e] hover:bg-[#3d2518] hover:text-[#d4b896]"
+          ? "bg-gradient-to-r from-[#442612] to-[#30190b] text-[#faf3ea] border border-[#c49756]/50 shadow-md shadow-black/20"
+          : "text-[#8c6e4e] hover:bg-[#28150c] hover:text-[#d4b896]"
       )}
     >
-      <span className={cn("flex-shrink-0 transition-transform", active && "scale-110")}>
+      <span className={cn(
+        "flex-shrink-0 transition-transform",
+        active ? "text-[#e5be85] scale-105" : "text-[#8c6e4e]"
+      )}>
         {item.icon}
       </span>
-      {!collapsed && <span>{item.label}</span>}
+      {!collapsed && <span className={cn(active && "font-semibold text-[#fcf6ee]")}>{item.label}</span>}
     </button>
   );
 }

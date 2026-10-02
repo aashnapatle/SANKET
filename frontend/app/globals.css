@@ -124,3 +124,64 @@ body {
   box-shadow: 0 4px 20px rgba(92, 61, 30, 0.15);
   transform: translateY(-1px);
 }
+
+/* SANKET central brand floating animation */
+@keyframes sanket-brand-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.sanket-brand-float {
+  animation: sanket-brand-float 5s ease-in-out infinite;
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Organic drifting animations for floating network labels */
+@keyframes drift-1 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(3px, -6px); }
+}
+@keyframes drift-2 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(-4px, 5px); }
+}
+@keyframes drift-3 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(-5px, -4px); }
+}
+@keyframes drift-4 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(4px, 5px); }
+}
+@keyframes drift-5 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(-3px, 6px); }
+}
+@keyframes drift-6 {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(5px, -3px); }
+}
+
+.drift-1 { animation: drift-1 6s ease-in-out infinite; }
+.drift-2 { animation: drift-2 7.2s ease-in-out infinite 0.8s; }
+.drift-3 { animation: drift-3 5.8s ease-in-out infinite 1.4s; }
+.drift-4 { animation: drift-4 6.5s ease-in-out infinite 2.1s; }
+.drift-5 { animation: drift-5 7s ease-in-out infinite 0.5s; }
+.drift-6 { animation: drift-6 6.2s ease-in-out infinite 1.8s; }
+
+/* Subtle pulse for background network nodes */
+@keyframes network-node-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.4); opacity: 0.95; }
+}
+
+.network-node-pulse {
+  animation: network-node-pulse 4.5s ease-in-out infinite;
+  transform-origin: center;
+}
+

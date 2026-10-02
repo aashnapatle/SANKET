@@ -343,66 +343,78 @@ export default function InvestigationGraph({ graph }: InvestigationGraphProps) {
   const fitView = () => cyRef.current?.fit(undefined, 30);
 
   return (
-    <div className="flex flex-col h-full bg-[#faf6f1]">
+    <div className="flex flex-col h-full bg-[#f8f4ee]">
       {/* ─── Toolbar ─────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#e8d8c4] bg-[#fdf8f3] flex-shrink-0">
+      <div className="flex items-center justify-between px-5 py-2.5 border-b border-[#e2d5c3] bg-[#fdfaf6] flex-shrink-0 select-none shadow-2xs">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-[#2c1810]">Investigation Graph</span>
-          <div className="flex items-center gap-3 ml-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#231207]">Investigation Graph</span>
+          <div className="flex items-center gap-3 ml-2 border-l border-[#e2d5c3] pl-3">
             {LEGEND.map(l => (
               <div key={l.label} className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} />
-                <span className="text-xs text-[#8c6e4e]">{l.label}</span>
+                <div className="w-2.5 h-2.5 rounded-full shadow-2xs" style={{ backgroundColor: l.color }} />
+                <span className="text-[11px] font-semibold text-[#8c6e4e]">{l.label}</span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-white border border-[#e8d8c4] rounded-lg px-2 py-1">
+          <div className="flex items-center gap-1.5 bg-white border border-[#dfd2be] rounded-xl px-2.5 py-1 shadow-2xs">
             <Search size={12} className="text-[#8c6e4e]" />
             <input
               value={searchNode}
               onChange={e => setSearchNode(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSearchNode()}
               placeholder="Search node..."
-              className="text-xs w-28 border-none outline-none bg-transparent text-[#2c1810] placeholder:text-[#b0977a]"
+              className="text-xs w-32 border-none outline-none bg-transparent text-[#231207] placeholder:text-[#a89279] font-medium"
             />
           </div>
-          <button onClick={fitView} className="p-1.5 rounded-lg border border-[#e8d8c4] text-[#5c3d1e] hover:bg-[#ede5d8] transition-colors" title="Fit to screen">
+          <button
+            onClick={fitView}
+            className="p-1.5 rounded-xl border border-[#dfd2be] bg-white text-[#5c3d1e] hover:bg-[#faf4ec] hover:border-[#c49756] transition-all shadow-2xs"
+            title="Fit graph to screen"
+          >
             <Maximize2 size={13} />
           </button>
         </div>
       </div>
 
-      {/* ─── Graph area ──────────────────────────────── */}
-      <div className="flex-1 relative min-h-0">
+      {/* ─── Graph area with subtle investigation grid texture ─ */}
+      <div className="flex-1 relative min-h-0 bg-[#f8f4ee] bg-[radial-gradient(#dfd4c5_1.2px,transparent_1.2px)] [background-size:22px_22px]">
         <div ref={containerRef} className="w-full h-full cytoscape-container" />
 
         {/* Zoom controls */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-          <button onClick={zoomIn}  className="w-7 h-7 bg-white border border-[#e8d8c4] rounded-lg text-[#5c3d1e] hover:bg-[#ede5d8] flex items-center justify-center shadow-sm transition-colors">
-            <ZoomIn  size={13} />
+        <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10 select-none">
+          <button
+            onClick={zoomIn}
+            className="w-8 h-8 bg-white border border-[#dfd2be] rounded-xl text-[#5c3d1e] hover:bg-[#faf4ec] hover:border-[#c49756] flex items-center justify-center shadow-xs transition-all active:scale-95"
+            title="Zoom in"
+          >
+            <ZoomIn size={13} />
           </button>
-          <button onClick={zoomOut} className="w-7 h-7 bg-white border border-[#e8d8c4] rounded-lg text-[#5c3d1e] hover:bg-[#ede5d8] flex items-center justify-center shadow-sm transition-colors">
+          <button
+            onClick={zoomOut}
+            className="w-8 h-8 bg-white border border-[#dfd2be] rounded-xl text-[#5c3d1e] hover:bg-[#faf4ec] hover:border-[#c49756] flex items-center justify-center shadow-xs transition-all active:scale-95"
+            title="Zoom out"
+          >
             <ZoomOut size={13} />
           </button>
         </div>
 
         {/* Loading overlay */}
         {!isLoaded && (
-          <div className="absolute inset-0 bg-[#faf6f1] flex items-center justify-center">
+          <div className="absolute inset-0 bg-[#f8f4ee]/90 backdrop-blur-2xs flex items-center justify-center z-20">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-[#c4a882] border-t-[#5c3d1e] rounded-full animate-spin" />
-              <span className="text-sm text-[#8c6e4e]">Building graph...</span>
+              <div className="w-9 h-9 border-2 border-[#dfd2be] border-t-[#c49756] rounded-full animate-spin" />
+              <span className="text-xs font-bold text-[#8c6e4e] tracking-wide uppercase">Mapping Network...</span>
             </div>
           </div>
         )}
 
         {/* Node/edge count badge */}
         {isLoaded && (
-          <div className="absolute bottom-3 left-3 bg-white/90 border border-[#e8d8c4] rounded-lg px-2.5 py-1 text-xs text-[#8c6e4e] shadow-sm">
-            {graph.nodes.length} nodes · {graph.edges.length} edges
+          <div className="absolute bottom-4 left-4 bg-white/95 border border-[#dfd2be] rounded-xl px-3 py-1 text-[11px] font-mono text-[#785b42] shadow-xs select-none">
+            <span className="font-bold text-[#231207]">{graph.nodes.length}</span> nodes · <span className="font-bold text-[#231207]">{graph.edges.length}</span> links
           </div>
         )}
       </div>

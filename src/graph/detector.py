@@ -13,6 +13,18 @@ import duckdb
 from src.data.database import get_connection
 
 class FraudGraphDetector:
+    def detect_cyclic_rings(self, G):
+        """Detect circular laundering paths using simple cycles."""
+        import networkx as nx
+        try:
+            cycles = list(nx.simple_cycles(G))
+            cyclic_accounts = set()
+            for cycle in cycles:
+                if len(cycle) > 1:
+                    cyclic_accounts.update(cycle)
+            return cyclic_accounts
+        except Exception:
+            return set()
     def __init__(self):
         pass
 

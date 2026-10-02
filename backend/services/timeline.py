@@ -6,7 +6,7 @@ No LLM-generated events are ever included in the timeline.
 
 STATUS: IMPLEMENTED
 """
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from datetime import datetime
 
 from backend.models.schemas import TimelineEvent
