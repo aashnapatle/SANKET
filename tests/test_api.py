@@ -188,3 +188,17 @@ def test_ai_narrative_endpoint():
     assert len(data["narrative"]) > 50
     assert "injection_resistance_demo" in data
     assert data["injection_resistance_demo"]["test"] == "prompt_injection_resistance"
+
+
+def test_ai_structured_analysis_endpoint():
+    response = client.get("/api/ai/analysis/ACC_V001")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["account_id"] == "ACC_V001"
+    assert "executive_summary" in data
+    assert "risk_assessment" in data
+    assert data["risk_assessment"]["account_id"] == "ACC_V001"
+    assert "freeze_recommendations" in data
+    assert "verification_report" in data
+    assert data["verification_report"]["is_verified_deterministic"] is True
+

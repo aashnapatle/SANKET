@@ -338,3 +338,57 @@ class TestSecurity:
             bad_narrative2, known_accounts, known_amounts, known_txns
         )
         assert not is_valid2
+
+    def test_ollama_engine_deterministic_fallback(self):
+        """Ensure fallback analysis produces 100% deterministic schema response."""
+        from backend.api.routes.investigate import investigate
+        from backend.services.ollama_engine import generate_deterministic_fallback_analysis
+
+        inv = investigate("ACC_V001")
+        fallback_res = generate_deterministic_fallback_analysis(inv, reason="Offline Test")
+
+        assert fallback_res.account_id == "ACC_V001"
+        assert fallback_res.verification_report.is_verified_deterministic is True
+        assert fallback_res.verification_report.fallback_mode_active is True
+        assert fallback_res.risk_assessment.risk_score_concurrence == inv.risk.score
+        assert len(fallback_res.freeze_recommendations) > 0
+
+    def test_ollama_engine_verification_auto_correction(self):
+        """Ensure verification layer corrects hallucinated numbers from LLM."""
+        from backend.api.routes.investigate import investigate
+        from backend.services.ollama_engine import verify_and_align_analysis
+
+        inv = investigate("ACC_V001")
+        # Simulating LLM returning incorrect risk score and fabricated freeze candidate
+        fake_llm_json = {
+            "executive_summary": "Test summary",
+            "risk_assessment": {
+                "account_id": "ACC_V001",
+                "assessed_risk_level": "LOW",
+                "risk_score_concurrence": 99.9,  # Incorrect score
+                "key_risk_drivers": [],
+                "explanation": "Test explanation",
+            },
+            "freeze_recommendations": [
+                {
+                    "rank": 1,
+                    "account_id": "ACC_NONEXISTENT",
+                    "bank": "FakeBank",
+                    "action": "FREEZE_ACCOUNT",
+                    "recommended_freeze_amount": 1000000.0,
+                    "justification": "Fake freeze",
+                }
+            ],
+            "flow_synthesis": {
+                "layer_breakdown": [],
+                "funnel_patterns": [],
+                "anomaly_flags": [],
+            }
+        }
+
+        verified = verify_and_align_analysis(fake_llm_json, inv, model_name="test-model")
+        # Assert verification layer corrected the score to ground truth
+        assert verified.risk_assessment.risk_score_concurrence == inv.risk.score
+        assert verified.verification_report.is_verified_deterministic is True
+        assert len(verified.verification_report.checked_math_discrepancies) > 0
+

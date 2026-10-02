@@ -2,13 +2,14 @@
 import { useState, useRef, useCallback } from "react";
 import { Card, Button, RiskBadge, LayerBadge } from "@/components/ui";
 import {
-  Snowflake, Eye, FileText, Landmark,
-  CheckCircle2, ArrowRight, Scale, Info,
-  FileSearch, Shield
+  Snowflake, AlertTriangle, Eye, FileText, Landmark,
+  ShieldAlert, CheckCircle2, ArrowRight, Scale, Info,
+  FileSearch, Shield, X, Copy, Download, Check, Loader2
 } from "lucide-react";
 import type { InvestigationResponse } from "@/lib/types";
 import { getRiskColor, formatCurrencyFull, cn } from "@/lib/utils";
 import { useSanketStore } from "@/lib/store";
+import { fetchFreezeNotice, generateReport } from "@/lib/api";
 
 interface FreezePlanViewProps {
   investigation?: InvestigationResponse | null;
@@ -336,13 +337,42 @@ function InteractiveNetwork({
 
 // ─── Main FreezePlanView Component ───────────────────────────────────────────
 export default function FreezePlanView({ investigation }: FreezePlanViewProps) {
-  const { setActiveNav } = useSanketStore();
+  const { setActiveNav, setActiveTab, setSelectedNode } = useSanketStore();
+
   const [preparedNoticeId, setPreparedNoticeId] = useState<string | null>(null);
 
-  // Mouse hover state for interactive network
+  // Mouse hover state for interactive network banner
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
+
+  // Section 102 CrPC Modal state
+  const [activeNoticeAccount, setActiveNoticeAccount] = useState<string | null>(null);
+  const [noticeData, setNoticeData] = useState<{
+    account: string;
+    layer: string;
+    mule_risk_score: number;
+    case_id: string;
+    recommended_action: string;
+    notice_text: string;
+  } | null>(null);
+  const [loadingNotice, setLoadingNotice] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Hero banner notice modal state (Section 91 CrPC / Section 94 BNSS)
+  const [heroNoticeType, setHeroNoticeType] = useState<"crpc91" | "bnss94" | null>(null);
+  const [heroNoticeData, setHeroNoticeData] = useState<{
+    account: string;
+    layer: string;
+    mule_risk_score: number;
+    case_id: string;
+    recommended_action: string;
+    notice_text: string;
+  } | null>(null);
+  const [loadingHeroNotice, setLoadingHeroNotice] = useState(false);
+  const [downloadingHeroNotice, setDownloadingHeroNotice] = useState(false);
+  const [heroCopied, setHeroCopied] = useState(false);
 
   const accounts = investigation?.graph.nodes ?? [];
 
@@ -381,6 +411,103 @@ export default function FreezePlanView({ investigation }: FreezePlanViewProps) {
     setHoveredNodeId(null);
     setMousePos(null);
   }, []);
+
+  // ─── Button Handlers ──────────────────────────────────────────────────────
+  const handleReviewLedger = (accId: string) => {
+    setSelectedNode(accId);
+    setActiveNav("investigation");
+    setActiveTab("transactions");
+  };
+
+  const handleDraftNotice = async (accId: string) => {
+    setPreparedNoticeId(accId);
+    setActiveNoticeAccount(accId);
+    setLoadingNotice(true);
+    setNoticeData(null);
+    try {
+      const data = await fetchFreezeNotice(accId);
+      setNoticeData(data);
+    } catch (err) {
+      console.error("Failed to fetch freeze notice:", err);
+    } finally {
+      setLoadingNotice(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!activeNoticeAccount) return;
+    setDownloadingPdf(true);
+    try {
+      await generateReport(activeNoticeAccount, "investigator");
+    } catch (err) {
+      console.error("Failed to generate PDF report:", err);
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleCopyNoticeText = () => {
+    if (noticeData?.notice_text) {
+      navigator.clipboard.writeText(noticeData.notice_text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // ─── Hero Banner Notice Handlers (Sec 91 CrPC / Sec 94 BNSS) ─────────────
+  const handleOpenHeroNotice = async (type: "crpc91" | "bnss94") => {
+    setHeroNoticeType(type);
+    setLoadingHeroNotice(true);
+    setHeroNoticeData(null);
+
+    // Resolve target account ID from current investigation, freeze candidates, or graph accounts
+    const targetAccountId =
+      investigation?.account?.account_id ||
+      (freezeCandidates.length > 0 ? freezeCandidates[0].id : "") ||
+      (accounts.length > 0 ? accounts[0].id : "");
+
+    if (!targetAccountId || !targetAccountId.trim()) {
+      console.warn("No valid target account ID available for notice requisition.");
+      setLoadingHeroNotice(false);
+      return;
+    }
+
+    try {
+      const data = await fetchFreezeNotice(targetAccountId);
+      setHeroNoticeData(data);
+    } catch (err) {
+      console.error("Failed to fetch hero statutory notice:", err);
+      setHeroNoticeData(null);
+    } finally {
+      setLoadingHeroNotice(false);
+    }
+  };
+
+  const handleHeroCopyText = () => {
+    if (heroNoticeData?.notice_text) {
+      navigator.clipboard.writeText(heroNoticeData.notice_text);
+      setHeroCopied(true);
+      setTimeout(() => setHeroCopied(false), 2000);
+    }
+  };
+
+  const handleHeroDownloadPdf = async () => {
+    const targetAccountId =
+      heroNoticeData?.account ||
+      investigation?.account?.account_id ||
+      (freezeCandidates.length > 0 ? freezeCandidates[0].id : "") ||
+      (accounts.length > 0 ? accounts[0].id : "");
+
+    if (!targetAccountId || !targetAccountId.trim()) return;
+    setDownloadingHeroNotice(true);
+    try {
+      await generateReport(targetAccountId, "investigator");
+    } catch (err) {
+      console.error("Failed to download hero notice PDF:", err);
+    } finally {
+      setDownloadingHeroNotice(false);
+    }
+  };
 
   return (
     <div className="h-full overflow-y-auto px-4 py-5 md:px-6 lg:px-8 bg-[#fdfaf6]">
@@ -457,14 +584,14 @@ export default function FreezePlanView({ investigation }: FreezePlanViewProps) {
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setActiveNav("notice")}
+                  onClick={() => handleOpenHeroNotice("crpc91")}
                   className="group/btn relative flex items-center gap-2 text-xs font-semibold rounded-xl px-4.5 py-2.5 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-sm"
                   style={{
                     background: "rgba(35, 18, 7, 0.92)",
                     border: "1px solid rgba(196, 151, 86, 0.55)",
                     color: "#fef3c7",
                   }}
-                  title="Navigate to Section 91 CrPC Statutory Notice preview"
+                  title="Open Section 91 CrPC Statutory Notice preview"
                 >
                   <FileSearch size={14} className="text-[#f59e0b] group-hover/btn:scale-110 transition-transform" />
                   <span>Section 91 CrPC</span>
@@ -473,7 +600,7 @@ export default function FreezePlanView({ investigation }: FreezePlanViewProps) {
 
                 <button
                   type="button"
-                  onClick={() => setActiveNav("notice")}
+                  onClick={() => handleOpenHeroNotice("bnss94")}
                   className="group/btn relative flex items-center gap-2 text-xs font-semibold rounded-xl px-4.5 py-2.5 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-sm"
                   style={{
                     background: "rgba(35, 18, 7, 0.92)",
@@ -592,24 +719,29 @@ export default function FreezePlanView({ investigation }: FreezePlanViewProps) {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex sm:flex-col gap-2 w-full sm:w-auto flex-shrink-0 pt-2 md:pt-0">
+                    <div className="flex sm:flex-col flex-wrap gap-1.5 w-full sm:w-auto flex-shrink-0 pt-2 md:pt-0">
                       <Button
                         variant="secondary"
                         size="sm"
-                        className="gap-1.5 justify-center"
-                        onClick={() => {
-                          const tabBtn = document.querySelector('[data-tab="transactions"]') as HTMLElement;
-                          if (tabBtn) tabBtn.click();
-                        }}
+                        className="gap-1.5 justify-center cursor-pointer text-xs"
+                        onClick={() => handleOpenHeroNotice("crpc91")}
                       >
-                        <Eye size={12} /> Review Ledger
+                        <FileSearch size={12} className="text-[#d97706]" /> Sec 91 CrPC
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="gap-1.5 justify-center cursor-pointer text-xs"
+                        onClick={() => handleOpenHeroNotice("bnss94")}
+                      >
+                        <Shield size={12} className="text-[#d97706]" /> Sec 94 BNSS
                       </Button>
                       <Button
                         size="sm"
-                        className="gap-1.5 justify-center"
-                        onClick={() => setPreparedNoticeId(acc.id)}
+                        className="gap-1.5 justify-center cursor-pointer text-xs"
+                        onClick={() => handleDraftNotice(acc.id)}
                       >
-                        <FileText size={12} /> Draft Sec 102 Notice
+                        <FileText size={12} /> Sec 102 Order
                       </Button>
                     </div>
                   </div>
@@ -626,10 +758,223 @@ export default function FreezePlanView({ investigation }: FreezePlanViewProps) {
             <span>FastAPI Backend Freeze Plan Integration</span>
           </div>
           <p className="leading-relaxed">
-            In live law enforcement deployments, freeze orders are dynamically synchronized with state cybercrime police nodal hubs via <code className="bg-white border border-[#dfd2be] px-1.5 py-0.5 rounded font-mono text-[#5c3d1e]">GET /api/freeze-plan/{"{account_id}"}</code>.
+            In live law enforcement deployments, freeze orders are dynamically synchronized with state cybercrime police nodal hubs via <code className="bg-white border border-[#dfd2be] px-1.5 py-0.5 rounded font-mono text-[#5c3d1e]">GET /api/freeze-plan/{"{account_id}"}</code> and <code className="bg-white border border-[#dfd2be] px-1.5 py-0.5 rounded font-mono text-[#5c3d1e]">GET /api/notice/{"{account_id}"}</code>.
           </p>
         </div>
       </div>
+
+      {/* ─── Section 102 CrPC Seizure Notice Requisition Modal ───────────────────────── */}
+      {activeNoticeAccount && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-[#fdfaf6] border-2 border-[#e2d5c3] rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-[#231207] text-[#fdfaf6] px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Scale size={18} className="text-[#d97706]" />
+                <div>
+                  <div className="text-xs font-mono uppercase tracking-wider text-[#d97706]">Sec 102 CrPC Statutory Order</div>
+                  <h3 className="font-bold text-base tracking-tight">Debit Freeze Requisition Notice</h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveNoticeAccount(null)}
+                className="text-[#a88d75] hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              {loadingNotice ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-3 text-sm text-[#8c6e4e]">
+                  <Loader2 size={24} className="animate-spin text-[#5c3d1e]" />
+                  <span>Generating Section 102 CrPC Statutory Requisition from DuckDB backend...</span>
+                </div>
+              ) : noticeData ? (
+                <>
+                  <div className="bg-white border border-[#e2d5c3] rounded-xl p-4 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[#8c6e4e]">Target Account: </span>
+                      <span className="font-mono font-bold text-[#231207]">{noticeData.account}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#8c6e4e]">Case Ref: </span>
+                      <span className="font-mono font-semibold text-[#5c3d1e]">{noticeData.case_id}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#8c6e4e]">Action: </span>
+                      <span className="font-bold text-[#b91c1c] bg-[#fef2f2] px-2 py-0.5 rounded border border-[#fecaca]">
+                        {noticeData.recommended_action}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-[#e2d5c3] rounded-xl p-5 shadow-inner font-mono text-xs text-[#231207] whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+                    {noticeData.notice_text}
+                  </div>
+                </>
+              ) : (
+                <div className="py-8 text-center text-sm text-[#b91c1c]">
+                  Failed to load notice text. Please ensure backend is active.
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-[#f5ecde] border-t border-[#e2d5c3] px-6 py-3.5 flex items-center justify-between gap-3">
+              <div className="text-xs text-[#8c6e4e]">
+                Issued by SANKET Cyber Crime Investigation Unit
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleCopyNoticeText}
+                  disabled={!noticeData}
+                  className="gap-1.5 cursor-pointer"
+                >
+                  {copied ? <Check size={13} className="text-[#16a34a]" /> : <Copy size={13} />}
+                  {copied ? "Copied!" : "Copy Text"}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleDownloadPdf}
+                  loading={downloadingPdf}
+                  disabled={!noticeData}
+                  className="gap-1.5 cursor-pointer"
+                >
+                  <Download size={13} />
+                  Download PDF Order
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setActiveNoticeAccount(null)}
+                  className="cursor-pointer"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── HERO NOTICE MODAL (Sec 91 CrPC / Sec 94 BNSS) ──────────────── */}
+      {heroNoticeType !== null && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-[#fdfaf6] border-2 border-[#e2d5c3] rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-[#231207] text-[#fdfaf6] px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {heroNoticeType === "crpc91"
+                  ? <FileSearch size={18} className="text-[#d97706]" />
+                  : <Shield size={18} className="text-[#d97706]" />
+                }
+                <div>
+                  <div className="text-xs font-mono uppercase tracking-wider text-[#d97706]">
+                    {heroNoticeType === "crpc91"
+                      ? "Sec 91 Code of Criminal Procedure"
+                      : "Sec 94 Bharatiya Nagarik Suraksha Sanhita"}
+                  </div>
+                  <h3 className="font-bold text-base tracking-tight">
+                    {heroNoticeType === "crpc91"
+                      ? "Section 91 CrPC — Notice to Produce Documents"
+                      : "Section 94 BNSS — Search & Seizure Requisition"}
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => { setHeroNoticeType(null); setHeroNoticeData(null); }}
+                className="text-[#a88d75] hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              {loadingHeroNotice ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-3 text-sm text-[#8c6e4e]">
+                  <Loader2 size={24} className="animate-spin text-[#5c3d1e]" />
+                  <span>
+                    {heroNoticeType === "crpc91"
+                      ? "Generating Section 91 CrPC Notice from backend..."
+                      : "Generating Section 94 BNSS Notice from backend..."}
+                  </span>
+                </div>
+              ) : heroNoticeData ? (
+                <>
+                  <div className="bg-white border border-[#e2d5c3] rounded-xl p-4 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[#8c6e4e]">Target Account: </span>
+                      <span className="font-mono font-bold text-[#231207]">{heroNoticeData.account}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#8c6e4e]">Case Ref: </span>
+                      <span className="font-mono font-semibold text-[#5c3d1e]">{heroNoticeData.case_id}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#8c6e4e]">Action: </span>
+                      <span className="font-bold text-[#b91c1c] bg-[#fef2f2] px-2 py-0.5 rounded border border-[#fecaca]">
+                        {heroNoticeData.recommended_action}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-[#e2d5c3] rounded-xl p-5 shadow-inner font-mono text-xs text-[#231207] whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+                    {heroNoticeData.notice_text}
+                  </div>
+                </>
+              ) : (
+                <div className="py-8 text-center text-sm text-[#b91c1c]">
+                  Failed to load notice. Please ensure the backend is active and an account has been investigated.
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-[#f5ecde] border-t border-[#e2d5c3] px-6 py-3.5 flex items-center justify-between gap-3">
+              <div className="text-xs text-[#8c6e4e]">
+                {heroNoticeType === "crpc91"
+                  ? "Section 91 CrPC — Issued by SANKET Cyber Crime Investigation Unit"
+                  : "Section 94 BNSS — Issued by SANKET Cyber Crime Investigation Unit"}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleHeroCopyText}
+                  disabled={!heroNoticeData}
+                  className="gap-1.5 cursor-pointer"
+                >
+                  {heroCopied ? <Check size={13} className="text-[#16a34a]" /> : <Copy size={13} />}
+                  {heroCopied ? "Copied!" : "Copy Text"}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleHeroDownloadPdf}
+                  loading={downloadingHeroNotice}
+                  disabled={!heroNoticeData}
+                  className="gap-1.5 cursor-pointer"
+                >
+                  <Download size={13} />
+                  Download PDF
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => { setHeroNoticeType(null); setHeroNoticeData(null); }}
+                  className="cursor-pointer"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

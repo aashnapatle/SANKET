@@ -22,7 +22,6 @@ const NAV_ITEMS: NavItem[] = [
   { id: "evidence", label: "Evidence", icon: <Shield size={16} />, section: "main" },
   { id: "reports", label: "Reports", icon: <FileText size={16} />, section: "main" },
   { id: "freeze", label: "Freeze Plan", icon: <Snowflake size={16} />, section: "tools" },
-  { id: "notice", label: "Notice Preview", icon: <FileSearch size={16} />, section: "tools" },
   { id: "benchmark", label: "Benchmark", icon: <BarChart3 size={16} />, section: "tools" },
   { id: "prompt-defense", label: "Prompt Defense", icon: <Lock size={16} />, section: "tools" },
 ];

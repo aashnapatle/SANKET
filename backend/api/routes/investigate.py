@@ -117,7 +117,33 @@ def investigate(account_id: str, max_hops: int = 4):
     cross_bank_analysis = analytics.build_cross_bank_analysis(all_txns)
     cycle_analysis = analytics.build_cycle_analysis(cycles)
 
-    # 12. Victim's direct transactions
+    # 12. Gunjan's Fraud Graph Detector & Section 91 CrPC Notice Generation
+    from src.graph.detector import FraudGraphDetector
+    from src.notice_generator import generate_freeze_notice
+
+    detector_evaluations = []
+    try:
+        detector = FraudGraphDetector()
+        trace_res = detector.trace_victim_flow(account_id, max_hops=max_hops, max_nodes=500)
+        detector_evaluations = trace_res.get("nodes", [])
+    except Exception as err:
+        from logging import getLogger
+        getLogger(__name__).warning(f"FraudGraphDetector evaluation warning: {err}")
+
+    court_ready_notices = []
+    for cand in freeze_plan.freeze_candidates:
+        cand_info = {
+            "account": cand.account_id,
+            "layer": cand.layer or "L1",
+            "mule_risk_score": cand.risk_score or 50.0,
+            "flags": [cand.reason],
+            "total_in": cand.tainted_amount_held,
+            "total_out": cand.estimated_blocked_amount,
+        }
+        notice = generate_freeze_notice(cand_info, case_id=f"CASE/2026/SANKET-{account_id[:8]}")
+        court_ready_notices.append(notice)
+
+    # 13. Victim's direct transactions
     victim_txns = [
         t for t in all_txns
         if t["sender_account"] == account_id or t["receiver_account"] == account_id
@@ -142,6 +168,8 @@ def investigate(account_id: str, max_hops: int = 4):
         device_analysis=device_analysis,
         cross_bank_analysis=cross_bank_analysis,
         cycle_analysis=cycle_analysis,
+        detector_evaluations=detector_evaluations,
+        court_ready_notices=court_ready_notices,
         data_label="LOCAL_SUPPLIED_DATASET — Ground Truth Investigation",
     )
 

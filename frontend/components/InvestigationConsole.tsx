@@ -9,7 +9,6 @@ import TransactionsView from "@/components/TransactionsView";
 import EvidenceView from "@/components/EvidenceView";
 import ReportsView from "@/components/ReportsView";
 import FreezePlanView from "@/components/FreezePlanView";
-import NoticePreviewView from "@/components/NoticePreviewView";
 import BenchmarkView from "@/components/BenchmarkView";
 import PromptDefenseView from "@/components/PromptDefenseView";
 import InvestigationLanding from "@/components/InvestigationLanding";
@@ -41,12 +40,12 @@ export default function InvestigationConsole() {
     investigation, isInvestigating, investigationError, investigationStage,
     activeTab, setActiveTab,
     selectedNodeId, selectedEdgeId, setSelectedNode, setSelectedEdge,
-    activeNav, setActiveNav, isJudgeMode, searchQuery,
+    activeNav, setActiveNav, searchQuery,
   } = useSanketStore();
 
   // ─── Tool views ─────────────────────────────────────────────────────────────
   if (activeNav === "freeze") return <FreezePlanView investigation={investigation} />;
-  if (activeNav === "notice") return <NoticePreviewView investigation={investigation} />;
+  if (activeNav === "notice") return <FreezePlanView investigation={investigation} />;
   if (activeNav === "benchmark") return <BenchmarkView />;
   if (activeNav === "prompt-defense") return <PromptDefenseView />;
 
@@ -78,7 +77,6 @@ export default function InvestigationConsole() {
   }
 
   const { account, risk } = investigation;
-  const judgeMode = isJudgeMode;
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#fdfaf6]">
@@ -179,7 +177,7 @@ export default function InvestigationConsole() {
         </div>
 
         {/* Risk signals quick summary */}
-        {!judgeMode && risk.signals.length > 0 && (
+        {risk.signals.length > 0 && (
           <div className="flex items-center gap-2.5 bg-[#fef2f2] border border-[#fecaca] rounded-2xl px-4 py-2.5 min-w-64 shadow-2xs">
             <AlertTriangle size={15} className="text-[#dc2626] flex-shrink-0" />
             <div className="min-w-0">
@@ -203,7 +201,7 @@ export default function InvestigationConsole() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={cn(
-              "relative flex items-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors duration-200 focus:outline-none",
+              "relative flex items-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors duration-200 focus:outline-none cursor-pointer",
               activeTab === tab.id
                 ? "text-[#231207]"
                 : "text-[#8c6e4e] hover:text-[#231207]"
@@ -269,18 +267,6 @@ export default function InvestigationConsole() {
           </div>
         )}
       </div>
-
-      {/* ─── Judge Mode Banner ───────────────────────────────────────────────── */}
-      {judgeMode && (
-        <div className="flex-shrink-0 bg-[#231207] border-t border-[#c49756]/60 text-[#f5ebd9] px-4 py-2 flex items-center justify-between text-xs select-none">
-          <div className="flex items-center gap-2">
-            <Scale size={14} className="text-[#c49756]" />
-            <span className="font-bold tracking-wide uppercase text-[#c49756]">Judge Mode Active</span>
-            <span className="text-[#c2ab95] hidden sm:inline">— Technical telemetry suppressed. Showing verified judicial evidence chain.</span>
-          </div>
-          <span className="text-[10px] text-[#9c826b] font-mono">COURT COMPLIANT</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -14,10 +14,6 @@ interface SanketStore {
   login: (id: string, password: string) => Promise<boolean>;
   logout: () => void;
 
-  // ─── Judge Mode ───────────────────────────────────────────────────────────
-  isJudgeMode: boolean;
-  toggleJudgeMode: () => void;
-
   // ─── Sidebar ──────────────────────────────────────────────────────────────
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
@@ -91,10 +87,6 @@ export const useSanketStore = create<SanketStore>((set, get) => ({
     return false;
   },
   logout: () => set({ isAuthenticated: false, investigation: null }),
-
-  // Judge Mode
-  isJudgeMode: false,
-  toggleJudgeMode: () => set(s => ({ isJudgeMode: !s.isJudgeMode })),
 
   // Sidebar
   isSidebarCollapsed: false,

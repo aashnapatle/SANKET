@@ -153,3 +153,50 @@ class TestRealInvestigationPipeline:
         data = response.json()
         assert data["measured"]["total_dataset_rows"] == 1997748
         assert data["measured"]["real_dataset_investigation_ms"] > 0
+
+    def test_gunjan_detector_and_notice_integration(self):
+        """Test Gunjan detector, notice generator, and report exporter integration."""
+        from src.graph.detector import FraudGraphDetector
+        from src.notice_generator import generate_freeze_notice
+        from src.report_exporter import export_investigation_report
+
+        # 1. FraudGraphDetector trace on real account
+        detector = FraudGraphDetector()
+        trace_res = detector.trace_victim_flow(self.REAL_ACCOUNT, max_hops=2, max_nodes=100)
+        assert trace_res["victim_account"] == self.REAL_ACCOUNT
+        assert trace_res["total_nodes"] > 0
+
+        # 2. Freeze notice generation
+        notice = generate_freeze_notice({
+            "account": self.REAL_ACCOUNT,
+            "layer": "VICTIM",
+            "mule_risk_score": 35.0,
+            "flags": ["HIGH_FAN_OUT"],
+            "total_in": 117614.16,
+            "total_out": 117614.16
+        })
+        assert notice["account"] == self.REAL_ACCOUNT
+        assert "FORMAL NOTICE UNDER SECTION 91 CrPC / PMLA" in notice["notice_text"]
+
+        # 3. Report exporter
+        report_json = export_investigation_report(
+            case_id="CASE/TEST/001",
+            seed_account=self.REAL_ACCOUNT,
+            evaluated_nodes=trace_res["nodes"][:10],
+            freeze_notices=[notice]
+        )
+        assert report_json["metadata"]["seed_account"] == self.REAL_ACCOUNT
+        assert len(report_json["court_ready_notices"]) == 1
+
+    def test_notice_and_report_export_endpoints(self):
+        """Test /api/notice/{account} and /api/reports/export/{account} routes."""
+        res_notice = client.get(f"/api/notice/{self.REAL_ACCOUNT}")
+        assert res_notice.status_code == 200
+        n_data = res_notice.json()
+        assert n_data["account"] == self.REAL_ACCOUNT
+        assert "SECTION 91 CrPC" in n_data["notice_text"]
+
+        res_report = client.get(f"/api/reports/export/{self.REAL_ACCOUNT}")
+        assert res_report.status_code == 200
+        r_data = res_report.json()
+        assert r_data["metadata"]["seed_account"] == self.REAL_ACCOUNT
