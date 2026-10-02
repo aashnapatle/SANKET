@@ -194,3 +194,102 @@ body {
   scrollbar-width: none;
 }
 
+/* ─── Investigation Search Bar Micro-Animations ────────────────────────────── */
+
+/* 1. Idle breathing glow */
+@keyframes search-bar-idle {
+  0%, 100% {
+    border-color: #dfd2bd;
+    box-shadow: 0 10px 35px -5px rgba(68, 36, 14, 0.08), 0 0 16px rgba(212, 153, 82, 0.09);
+  }
+  50% {
+    border-color: #d6be99;
+    box-shadow: 0 10px 35px -5px rgba(68, 36, 14, 0.08), 0 0 24px rgba(212, 153, 82, 0.20);
+  }
+}
+
+.search-bar-idle {
+  animation: search-bar-idle 4.5s ease-in-out infinite;
+}
+
+.search-bar-idle:hover,
+.search-bar-idle:focus-within {
+  animation: none;
+}
+
+/* 2. Focus light sweep sheen */
+@keyframes search-sheen {
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(280%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+.animate-search-sheen {
+  animation: search-sheen 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* 3. Search icon focus pulse */
+@keyframes icon-focus-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.16); color: #c49756; }
+  100% { transform: scale(1); }
+}
+
+.animate-icon-pulse {
+  animation: icon-focus-pulse 0.35s ease-out;
+}
+
+/* 4. Submission confirmation highlight and icon rotation */
+@keyframes submit-confirm-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(245, 158, 11, 0);
+  }
+  40% {
+    transform: scale(1.006);
+    border-color: #f59e0b;
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.38), 0 12px 35px -5px rgba(68, 36, 14, 0.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-submit-confirm {
+  animation: submit-confirm-pulse 0.3s ease-out;
+}
+
+@keyframes icon-submit-rotate {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(18deg) scale(1.15); color: #f59e0b; }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.animate-icon-submit {
+  animation: icon-submit-rotate 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .search-bar-idle,
+  .animate-search-sheen,
+  .animate-icon-pulse,
+  .animate-submit-confirm,
+  .animate-icon-submit {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+

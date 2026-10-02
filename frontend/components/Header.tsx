@@ -6,11 +6,7 @@ import { Menu, Bell, LogOut, User } from "lucide-react";
 
 export default function Header() {
   const {
-<<<<<<< HEAD
-    toggleSidebar, investigatorName, logout,
-=======
     toggleSidebar, isSidebarCollapsed, isJudgeMode, toggleJudgeMode, investigatorName, logout,
->>>>>>> f4302e2 (added logo)
   } = useSanketStore();
 
   const [showProfile, setShowProfile] = useState(false);
