@@ -270,6 +270,53 @@ export async function generateReport(accountId: string, reportType: "investigato
 }
 
 /**
+ * Fetch Section 91 CrPC / PMLA Freeze Notice via FastAPI GET /api/notice/{account_id}
+ */
+export async function fetchFreezeNotice(accountId: string): Promise<{
+  account: string;
+  layer: string;
+  mule_risk_score: number;
+  case_id: string;
+  recommended_action: string;
+  notice_text: string;
+}> {
+  if (!accountId || typeof accountId !== "string" || !accountId.trim()) {
+    throw new Error("Target Account ID is required to fetch freeze notice.");
+  }
+
+  const cleanId = accountId.trim();
+
+  if (USE_MOCK) {
+    return {
+      account: cleanId,
+      layer: "L1",
+      mule_risk_score: 75,
+      case_id: `CASE/2026/SANKET-${cleanId.slice(0, 8)}`,
+      recommended_action: "FREEZE_IMMEDIATE",
+      notice_text: `FORMAL NOTICE UNDER SECTION 91 CrPC / PMLA\nTO: Branch Manager / Nodal Officer\nSUBJECT: IMMEDIATE FREEZE ORDER FOR ACCOUNT ${cleanId}\n\nCase Reference: CASE/2026/SANKET-${cleanId.slice(0, 8)}\nDate: ${new Date().toISOString()}\n\nAccount Details:\n- Target Account: ${cleanId}\n- Classified Layer: L1\n- Calculated Mule Risk Score: 75/100\n- Suspicious Indicators: Rapid pass-through, Fan-out pattern\n\nDirective:\nFreeze debit transactions on the aforementioned account with immediate effect and submit KYC records within 24 hours.\n\nIssued by:\nFinancial Cyber Investigation Unit (SANKET Engine)`,
+    };
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}/api/notice/${encodeURIComponent(cleanId)}`);
+    if (!response.ok) {
+      let errorMsg = `Failed to fetch freeze notice (HTTP ${response.status})`;
+      try {
+        const errJson = await response.json();
+        if (errJson?.detail) errorMsg = errJson.detail;
+      } catch {
+        // Fallback to text status
+      }
+      throw new Error(errorMsg);
+    }
+    return await response.json();
+  } catch (err: any) {
+    console.error("fetchFreezeNotice failed:", err);
+    throw new Error(err.message || "Failed to fetch freeze notice from backend");
+  }
+}
+
+/**
  * Health check endpoint GET /health
  */
 export async function checkHealth(): Promise<boolean> {

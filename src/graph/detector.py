@@ -1,4 +1,4 @@
-﻿"""
+"""
 src/graph/detector.py
 =====================
 Module B: Mule Ring Detection & Graph Analytics Engine
@@ -28,17 +28,21 @@ class FraudGraphDetector:
     def __init__(self):
         pass
 
-    def trace_victim_flow(self, victim_account: str, max_hops: int = 4) -> Dict[str, Any]:
+    def trace_victim_flow(self, victim_account: str, max_hops: int = 4, max_nodes: int = 500) -> Dict[str, Any]:
         victim_account = str(victim_account).strip()
         visited_hops = {victim_account: 0}
         current_layer = [victim_account]
         
         edges = []
         seen_tx_ids = set()
-        con = get_connection()
+        try:
+            from backend.db.loader import get_connection as get_backend_conn
+            con = get_backend_conn()
+        except Exception:
+            con = get_connection()
 
         for hop in range(1, max_hops + 1):
-            if not current_layer:
+            if not current_layer or len(visited_hops) >= max_nodes:
                 break
 
             placeholders = ", ".join(["?"] * len(current_layer))

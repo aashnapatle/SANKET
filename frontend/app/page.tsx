@@ -8,7 +8,7 @@ import SubtleNetworkBackground from "@/components/SubtleNetworkBackground";
 import { cn } from "@/lib/utils";
 
 export default function HomePage() {
-  const { isAuthenticated, isJudgeMode } = useSanketStore();
+  const { isAuthenticated } = useSanketStore();
 
   // ─── Not authenticated → Login ────────────────────────────────────────────
   if (!isAuthenticated) {
@@ -30,10 +30,7 @@ export default function HomePage() {
         <SubtleNetworkBackground />
 
         {/* Investigation Workspace */}
-        <main className={cn(
-          "flex-1 overflow-hidden relative z-10",
-          isJudgeMode && "ring-2 ring-[#c49756] ring-inset"
-        )}>
+        <main className="flex-1 overflow-hidden relative z-10">
           <InvestigationConsole />
         </main>
       </div>

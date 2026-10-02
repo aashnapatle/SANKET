@@ -35,8 +35,8 @@ def _init_db() -> duckdb.DuckDBPyConnection:
     """Initialize DuckDB, create tables, load data if needed."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     try:
-        conn = duckdb.connect(str(DUCKDB_PATH), read_only=True)
-        pass  # _create_schema(conn)
+        conn = duckdb.connect(str(DUCKDB_PATH))
+        _create_schema(conn)
         _ensure_data(conn)
         return conn
     except duckdb.IOException as e:
@@ -161,10 +161,21 @@ def reset_and_reload_parquet(parquet_path: Path | None = None) -> int:
     """
     Drop and recreate table, load from real Parquet.
     """
+    global _conn
     conn = get_connection()
-    conn.execute("DROP TABLE IF EXISTS transactions")
-    pass  # _create_schema(conn)
+    try:
+        conn.execute("DROP TABLE IF EXISTS transactions")
+    except duckdb.InvalidInputException:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        _conn = duckdb.connect(str(DUCKDB_PATH))
+        conn = _conn
+        conn.execute("DROP TABLE IF EXISTS transactions")
+
     target_pq = parquet_path or REAL_PARQUET
+    _create_schema(conn)
     if target_pq.exists():
         return load_parquet(conn, target_pq)
     elif REAL_CSV.exists():
@@ -176,9 +187,20 @@ def reset_and_reload(csv_path: Path | None = None) -> None:
     """
     Drop and recreate the table, reload from specified CSV or real Parquet default.
     """
+    global _conn
     conn = get_connection()
-    conn.execute("DROP TABLE IF EXISTS transactions")
-    pass  # _create_schema(conn)
+    try:
+        conn.execute("DROP TABLE IF EXISTS transactions")
+    except duckdb.InvalidInputException:
+        try:
+            conn.close()
+        except Exception:
+            pass
+        _conn = duckdb.connect(str(DUCKDB_PATH))
+        conn = _conn
+        conn.execute("DROP TABLE IF EXISTS transactions")
+
+    _create_schema(conn)
     if csv_path:
         load_csv(conn, csv_path)
     elif REAL_PARQUET.exists():

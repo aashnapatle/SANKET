@@ -11,9 +11,19 @@ from pathlib import Path
 # ─── Project Paths ───────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
+DATASETS_DIR = BASE_DIR / "datasets"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 REAL_PARQUET = PROCESSED_DATA_DIR / "transactions.parquet"
-REAL_CSV = Path(r"C:\Users\anany\Downloads\VoidHacks8_MuleAccount_2M_Transactions.csv")
+
+# Dynamic local CSV path resolution: checks project data/ & datasets/ folders first
+_POSSIBLE_CSV_PATHS = [
+    DATA_DIR / "VoidHacks8_MuleAccount_2M_Transactions.csv",
+    DATA_DIR / "raw" / "VoidHacks8_MuleAccount_2M_Transactions.csv",
+    DATASETS_DIR / "VoidHacks8_MuleAccount_2M_Transactions.csv",
+    Path(r"C:\Users\anany\Downloads\VoidHacks8_MuleAccount_2M_Transactions.csv"),
+]
+REAL_CSV = next((p for p in _POSSIBLE_CSV_PATHS if p.exists()), _POSSIBLE_CSV_PATHS[-1])
+
 SYNTHETIC_CSV = DATA_DIR / "synthetic" / "transactions.csv"
 DUCKDB_PATH = BASE_DIR / "data" / "abhedya.duckdb"
 
@@ -86,10 +96,12 @@ FREEZE_METHOD = "max_flow_min_cut"
 
 # ─── AI Settings ─────────────────────────────────────────────────────────────
 OLLAMA_URL = "http://localhost:11434"
-OLLAMA_MODEL = "llama3.2"      # or any locally available model
+OLLAMA_MODEL = "qwen3.5:9b"   # Locally installed model (ollama list to verify)
 AI_ENABLED = True              # Set False if Ollama not available
-AI_MAX_RETRIES = 2             # Retry on validation failure
-AI_TIMEOUT_SECONDS = 30
+AI_MAX_RETRIES = 1             # Retry on validation failure
+AI_TIMEOUT_SECONDS = 15        # Snappy timeout with instant deterministic fallback
+AI_TEMPERATURE = 0.1           # Near-deterministic for financial analysis
+AI_STRUCTURED_FORMAT = "json"  # Force JSON output mode
 
 # ─── Report Settings ─────────────────────────────────────────────────────────
 REPORT_OUTPUT_DIR = BASE_DIR / "data" / "reports"
