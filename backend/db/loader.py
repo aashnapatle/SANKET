@@ -35,8 +35,8 @@ def _init_db() -> duckdb.DuckDBPyConnection:
     """Initialize DuckDB, create tables, load data if needed."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     try:
-        conn = duckdb.connect(str(DUCKDB_PATH), read_only=False)
-        _create_schema(conn)
+        conn = duckdb.connect(str(DUCKDB_PATH), read_only=True)
+        pass  # _create_schema(conn)
         _ensure_data(conn)
         return conn
     except duckdb.IOException as e:
@@ -163,7 +163,7 @@ def reset_and_reload_parquet(parquet_path: Path | None = None) -> int:
     """
     conn = get_connection()
     conn.execute("DROP TABLE IF EXISTS transactions")
-    _create_schema(conn)
+    pass  # _create_schema(conn)
     target_pq = parquet_path or REAL_PARQUET
     if target_pq.exists():
         return load_parquet(conn, target_pq)
@@ -178,7 +178,7 @@ def reset_and_reload(csv_path: Path | None = None) -> None:
     """
     conn = get_connection()
     conn.execute("DROP TABLE IF EXISTS transactions")
-    _create_schema(conn)
+    pass  # _create_schema(conn)
     if csv_path:
         load_csv(conn, csv_path)
     elif REAL_PARQUET.exists():
