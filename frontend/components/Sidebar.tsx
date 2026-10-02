@@ -91,7 +91,7 @@ export default function Sidebar() {
       </div>
 
       {/* ─── Navigation ──────────────────────────────────── */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-2 space-y-1">
         {/* Main items */}
         {NAV_ITEMS.filter(n => n.section === "main").map(item => (
           <NavButton
@@ -182,20 +182,31 @@ function NavButton({
       onClick={onClick}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "w-full flex items-center rounded-xl transition-all duration-200 text-xs font-medium focus:outline-none relative group cursor-pointer",
+        "w-full flex items-center rounded-xl text-xs font-medium focus:outline-none relative group cursor-pointer",
+        "transition-all duration-200 ease-out will-change-transform transform-gpu",
+        "hover:translate-x-[5px] hover:scale-[1.02]",
         collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
         active
-          ? "bg-gradient-to-r from-[#482813] to-[#341b0e] text-[#fef8f0] border border-[#d49952]/70 shadow-[0_0_18px_rgba(212,153,82,0.25)] ring-1 ring-[#c49756]/30"
-          : "text-[#9c7e5e] hover:bg-[#28150c] hover:text-[#e8d5be] border border-transparent"
+          ? "bg-gradient-to-r from-[#482813] to-[#341b0e] hover:from-[#522d15] hover:to-[#3b1e10] text-[#fef8f0] border border-[#d49952]/70 hover:border-[#d49952]/90 shadow-[0_0_18px_rgba(212,153,82,0.25)] hover:shadow-[0_4px_22px_rgba(212,153,82,0.38),0_1px_4px_rgba(0,0,0,0.4)] ring-1 ring-[#c49756]/30 hover:ring-[#c49756]/50 z-[2] hover:z-10"
+          : "text-[#9c7e5e] hover:text-[#f3e5d4] bg-transparent hover:bg-gradient-to-r hover:from-[#2a170d] hover:to-[#22120a] border border-transparent hover:border-[#c49756]/30 hover:shadow-[0_4px_16px_rgba(196,151,86,0.18),0_1px_3px_rgba(0,0,0,0.35)] hover:z-10"
       )}
     >
       <span className={cn(
-        "flex-shrink-0 transition-transform",
-        active ? "text-[#f59e0b] scale-105 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "text-[#8c6e4e] group-hover:text-[#c49756]"
+        "flex-shrink-0 transition-colors duration-200 ease-out",
+        active
+          ? "text-[#f59e0b] scale-105 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+          : "text-[#8c6e4e] group-hover:text-[#d49952]"
       )}>
         {item.icon}
       </span>
-      {!collapsed && <span className={cn(active && "font-semibold text-[#fcf6ee]")}>{item.label}</span>}
+      {!collapsed && (
+        <span className={cn(
+          "transition-colors duration-200 ease-out",
+          active ? "font-semibold text-[#fcf6ee]" : "group-hover:text-[#f3e5d4]"
+        )}>
+          {item.label}
+        </span>
+      )}
     </button>
   );
 }

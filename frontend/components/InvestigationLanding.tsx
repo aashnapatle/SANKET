@@ -53,6 +53,21 @@ export default function InvestigationLanding() {
 
   const [inputVal, setInputVal] = useState(searchQuery || "");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [sheenKey, setSheenKey] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isTyping = inputVal.trim().length > 0;
+  const hasActiveCase = Boolean(investigation);
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    setSheenKey((k) => k + 1);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+  };
 
   // Subtle Mouse Tracking for Ambient Background Nodes (Zero Popups/Tooltips)
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
@@ -109,11 +124,17 @@ export default function InvestigationLanding() {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    executeInvestigation(inputVal);
+    const target = inputVal.trim();
+    if (!target || isInvestigating) return;
+    setIsSubmitting(true);
+    setTimeout(() => setIsSubmitting(false), 300);
+    executeInvestigation(target);
   };
 
   const handleChipClick = (acc: string) => {
     setInputVal(acc);
+    setIsSubmitting(true);
+    setTimeout(() => setIsSubmitting(false), 300);
     executeInvestigation(acc);
   };
 
@@ -378,14 +399,59 @@ export default function InvestigationLanding() {
           <div className="w-14 h-1 rounded-full bg-gradient-to-r from-[#d97706] via-[#f59e0b] to-[#b45309] mt-3 shadow-[0_0_12px_rgba(245,158,11,0.4)]" />
         </div>
 
-        {/* Main Central Investigation Search Box (Capsule Pill with Soft Gold Ambient Glow) */}
+        {/* Main Central Investigation Search Box (Capsule Pill with Interactive Micro-Animations) */}
         <div className="w-full max-w-2xl mt-7">
           <form
             onSubmit={handleFormSubmit}
-            className="w-full bg-white/95 rounded-full border border-[#dfd2bd] hover:border-[#c49756] focus-within:border-[#c49756] shadow-[0_10px_35px_-5px_rgba(68,36,14,0.08),0_0_24px_rgba(212,153,82,0.12)] p-1.5 sm:p-2 flex items-center gap-2 transition-all duration-300 focus-within:ring-2 focus-within:ring-[#c49756]/20"
+            className={cn(
+              "relative w-full bg-white/95 rounded-full border p-1.5 sm:p-2 flex items-center gap-2",
+              "transition-all duration-200 ease-out will-change-transform transform-gpu",
+              "hover:-translate-y-[6px] hover:scale-[1.018]",
+              "hover:border-[#c49756] hover:shadow-[0_18px_45px_-6px_rgba(68,36,14,0.18),0_0_28px_rgba(212,153,82,0.25)]",
+              "overflow-hidden group/search",
+              isSubmitting
+                ? "animate-submit-confirm border-[#f59e0b]"
+                : isFocused
+                  ? "border-[#c49756] ring-2 ring-[#c49756]/25 shadow-[0_14px_42px_-4px_rgba(68,36,14,0.14),0_0_30px_rgba(212,153,82,0.28)]"
+                  : hasActiveCase
+                    ? "border-[#c49756]/70 shadow-[0_10px_35px_-5px_rgba(68,36,14,0.08),0_0_24px_rgba(212,153,82,0.18)]"
+                    : "search-bar-idle"
+            )}
           >
-            <div className="pl-3.5 text-[#8a6a4c] flex-shrink-0">
-              <Search size={18} />
+            {/* Subtle Light Sweep Sheen on Focus */}
+            {isFocused && (
+              <div
+                key={sheenKey}
+                className="pointer-events-none absolute inset-0 rounded-full overflow-hidden z-0"
+              >
+                <div className="w-1/3 h-full bg-gradient-to-r from-transparent via-[#c49756]/20 to-transparent transform -skew-x-12 animate-search-sheen" />
+              </div>
+            )}
+
+            {/* Search Icon with Interactive States & Micro Radar Indicator */}
+            <div className="pl-3.5 relative flex items-center flex-shrink-0 z-10">
+              <span
+                className={cn(
+                  "flex items-center justify-center transition-all duration-200 ease-out",
+                  isSubmitting
+                    ? "animate-icon-submit text-[#f59e0b]"
+                    : isFocused
+                      ? "animate-icon-pulse text-[#b45309] drop-shadow-[0_0_8px_rgba(212,153,82,0.45)]"
+                      : isTyping
+                        ? "text-[#c49756] drop-shadow-[0_0_6px_rgba(196,151,86,0.4)]"
+                        : "text-[#8a6a4c] group-hover/search:text-[#b47836]"
+                )}
+              >
+                <Search size={18} />
+              </span>
+
+              {/* Tiny micro radar/query indicator dot while typing */}
+              {isTyping && !isInvestigating && (
+                <span className="absolute -top-0.5 -right-1 flex h-2 w-2" title="Investigation query ready">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f59e0b] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#d97706]" />
+                </span>
+              )}
             </div>
 
             <input
@@ -393,8 +459,10 @@ export default function InvestigationLanding() {
               type="text"
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
               placeholder="Enter Account Number / UPI ID / Phone Number"
-              className="flex-1 bg-transparent px-2 py-2 text-sm text-[#231207] placeholder:text-[#a58e76] outline-none font-medium min-w-0"
+              className="flex-1 bg-transparent px-2 py-2 text-sm text-[#231207] placeholder:text-[#a58e76] outline-none font-medium min-w-0 relative z-10"
               disabled={isInvestigating}
             />
 
@@ -402,7 +470,7 @@ export default function InvestigationLanding() {
               type="submit"
               disabled={!inputVal.trim() || isInvestigating}
               className={cn(
-                "group relative inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-bold text-xs sm:text-sm tracking-wide text-[#fcf8f2] transition-all duration-200 flex-shrink-0 select-none",
+                "group relative inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-bold text-xs sm:text-sm tracking-wide text-[#fcf8f2] transition-all duration-200 flex-shrink-0 select-none z-10",
                 "bg-gradient-to-r from-[#44230e] via-[#351a0b] to-[#251207] border border-[#d49952]/80",
                 "shadow-[0_4px_18px_rgba(212,153,82,0.32)] hover:shadow-[0_6px_24px_rgba(212,153,82,0.48)] hover:border-[#f59e0b]",
                 "hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"

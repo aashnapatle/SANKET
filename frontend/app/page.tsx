@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useSanketStore } from "@/lib/store";
 import LoginPage from "@/components/LoginPage";
 import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
 import InvestigationConsole from "@/components/InvestigationConsole";
 import SubtleNetworkBackground from "@/components/SubtleNetworkBackground";
 import { cn } from "@/lib/utils";
@@ -34,7 +33,6 @@ export default function HomePage() {
       <SubtleNetworkBackground />
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 relative z-10">
-        <Header />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <InvestigationConsole />
         </main>
