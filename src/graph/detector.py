@@ -1,12 +1,14 @@
-"""
+﻿"""
 src/graph/detector.py
 =====================
 Module B: Mule Ring Detection & Graph Analytics Engine
-Optimized for <= 2.0s 4-Hop Benchmark Latency
+Includes:
+- Batch BFS Traversal (<= 2.0s latency)
+- Vectorized DuckDB Cyclic Smurfing Detection
+- L1/L2/L3 Heuristics & Risk Scoring (0-100)
 """
 
-from collections import deque
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Set
 import duckdb
 from src.data.database import get_connection
 
@@ -15,9 +17,6 @@ class FraudGraphDetector:
         pass
 
     def trace_victim_flow(self, victim_account: str, max_hops: int = 4) -> Dict[str, Any]:
-        """
-        Batch BFS downstream traversal to consistently hit < 0.5s latency.
-        """
         victim_account = str(victim_account).strip()
         visited_hops = {victim_account: 0}
         current_layer = [victim_account]
@@ -30,7 +29,6 @@ class FraudGraphDetector:
             if not current_layer:
                 break
 
-            # Batch query all outgoing transactions for the entire layer
             placeholders = ", ".join(["?"] * len(current_layer))
             query = f"""
                 SELECT 
@@ -74,24 +72,57 @@ class FraudGraphDetector:
 
             current_layer = next_layer
 
-        # Batch analyze discovered nodes
-        nodes = self._batch_evaluate_nodes(list(visited_hops.keys()), visited_hops, con)
+        # Ultra-fast vectorized cycle detection via DuckDB
+        cyclic_accounts = self._detect_cycles(list(visited_hops.keys()), con)
+
+        # Batch evaluate risk heuristics
+        nodes = self._batch_evaluate_nodes(list(visited_hops.keys()), visited_hops, cyclic_accounts, con)
 
         return {
             "victim_account": victim_account,
             "total_nodes": len(nodes),
             "total_edges": len(edges),
+            "cyclic_nodes_count": len(cyclic_accounts),
             "nodes": nodes,
             "edges": edges
         }
 
-    def _batch_evaluate_nodes(self, accounts: List[str], hops: Dict[str, int], con) -> List[Dict[str, Any]]:
+    def _detect_cycles(self, visited_accounts: List[str], con) -> Set[str]:
+        """Detect circular money laundering flows (2-hop and 3-hop cycles) via DuckDB."""
+        if len(visited_accounts) < 2:
+            return set()
+
+        placeholders = ", ".join(["?"] * len(visited_accounts))
+        query = f"""
+            WITH pool AS (
+                SELECT DISTINCT sender_account as s, receiver_account as r
+                FROM transactions
+                WHERE sender_account IN ({placeholders}) 
+                  AND receiver_account IN ({placeholders})
+            )
+            SELECT DISTINCT p1.s 
+            FROM pool p1 
+            JOIN pool p2 ON p1.r = p2.s AND p2.r = p1.s AND p1.s != p1.r
+            UNION
+            SELECT DISTINCT p1.s 
+            FROM pool p1 
+            JOIN pool p2 ON p1.r = p2.s
+            JOIN pool p3 ON p2.r = p3.s AND p3.r = p1.s
+            WHERE p1.s != p1.r AND p2.s != p2.r AND p1.s != p2.s
+        """
+        try:
+            params = visited_accounts + visited_accounts
+            rows = con.execute(query, params).fetchall()
+            return {str(r[0]) for r in rows}
+        except Exception:
+            return set()
+
+    def _batch_evaluate_nodes(self, accounts: List[str], hops: Dict[str, int], cyclic_nodes: Set[str], con) -> List[Dict[str, Any]]:
         if not accounts:
             return []
 
         placeholders = ", ".join(["?"] * len(accounts))
 
-        # 1. Incoming aggregations (Fan-In)
         in_query = f"""
             SELECT 
                 receiver_account,
@@ -103,7 +134,6 @@ class FraudGraphDetector:
         """
         in_metrics = {r[0]: (r[1], float(r[2])) for r in con.execute(in_query, accounts).fetchall()}
 
-        # 2. Outgoing aggregations (Fan-Out & Terminal checks)
         out_query = f"""
             SELECT 
                 sender_account,
@@ -145,24 +175,29 @@ class FraudGraphDetector:
             layer = "Normal"
             flags = []
 
-            # L1: Fan-In
+            # Cyclic Smurfing Loop Heuristic (+50)
+            if acc in cyclic_nodes:
+                score += 50
+                flags.append("Circular Money Flow Detected (Smurfing Loop)")
+
+            # L1: Collector (+35)
             if in_deg >= 3:
                 score += 35
                 layer = "L1_Collector"
                 flags.append(f"Fan-In Detected ({in_deg} senders)")
 
-            # L2: Fan-Out
+            # L2: Distributor (+35)
             if 3 <= out_deg <= 7:
                 score += 35
                 layer = "L2_Distributor"
                 flags.append(f"Fan-Out Detected ({out_deg} receivers)")
 
-            # Velocity Pass-Through
+            # Velocity Pass-Through (+25)
             if total_in > 0 and (total_out / total_in) >= 0.90:
                 score += 25
                 flags.append(f"Velocity Pass-Through ({(total_out/total_in)*100:.1f}%)")
 
-            # L3: Terminal Indicators
+            # L3: Terminal Indicators (+30 to +40)
             if out_info["foreign_ip"]:
                 score += 40
                 layer = "L3_Terminal"
