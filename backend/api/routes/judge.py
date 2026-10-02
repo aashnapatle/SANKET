@@ -99,6 +99,30 @@ def get_benchmark(account_id: Optional[str] = None):
     result = _investigate(target)
     elapsed_ms = (time.perf_counter() - start) * 1000
 
+    val_report = {}
+    try:
+        from pathlib import Path
+        import json
+        rep_file = Path("data/processed/validation_report.json")
+        if rep_file.exists():
+            val_report = json.loads(rep_file.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+
+    payment_mode_breakdown = {}
+    device_type_breakdown = {}
+    try:
+        from backend.db.loader import get_connection
+        conn = get_connection()
+        for mode, cnt in conn.execute("SELECT payment_mode, count(*) FROM transactions GROUP BY payment_mode").fetchall():
+            if mode:
+                payment_mode_breakdown[mode] = cnt
+        for dev, cnt in conn.execute("SELECT device_type, count(*) FROM transactions GROUP BY device_type").fetchall():
+            if dev:
+                device_type_breakdown[dev] = cnt
+    except Exception:
+        pass
+
     return {
         "measured": {
             "real_dataset_investigation_ms": round(elapsed_ms, 1),
@@ -106,7 +130,12 @@ def get_benchmark(account_id: Optional[str] = None):
             "accounts_in_subgraph": len(result.graph.nodes),
             "transactions_in_subgraph": len(result.graph.edges),
             "evidence_items": len(result.evidence),
-            "total_dataset_rows": 1997748,
+            "total_dataset_rows": val_report.get("clean_rows", 1997748),
+            "csv_read_ms": round(val_report.get("read_csv_seconds", 0) * 1000) if "read_csv_seconds" in val_report else None,
+            "validation_ms": round(val_report.get("validate_seconds", 0) * 1000) if "validate_seconds" in val_report else None,
+            "parquet_write_ms": round(val_report.get("write_parquet_seconds", 0) * 1000) if "write_parquet_seconds" in val_report else None,
+            "payment_mode_breakdown": payment_mode_breakdown,
+            "device_type_breakdown": device_type_breakdown,
         },
         "targets": {
             "victim_query_ms": 2000,
@@ -114,3 +143,4 @@ def get_benchmark(account_id: Optional[str] = None):
         },
         "data_label": "LOCAL_SUPPLIED_DATASET — Measured Benchmark",
     }
+

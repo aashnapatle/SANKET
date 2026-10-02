@@ -80,9 +80,9 @@ export default function InvestigationLanding() {
       setActiveNav(tab);
       setActiveTab(tab);
     } else {
-      // If no investigation active, use default demo account ACC001235
-      setInputVal("ACC001235");
-      executeInvestigation("ACC001235");
+      // If no investigation active, query default real ground-truth account SBIN10012624
+      setInputVal("SBIN10012624");
+      executeInvestigation("SBIN10012624");
     }
   };
 
