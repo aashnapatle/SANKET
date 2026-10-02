@@ -4,7 +4,7 @@ import { Card, Button, RiskBadge } from "@/components/ui";
 import {
   Lock, AlertTriangle, CheckCircle2, ShieldAlert,
   ShieldCheck, ArrowRight, Sparkles, Terminal, Filter,
-  Shield, KeyRound
+  Shield, KeyRound, ChevronDown, ChevronUp, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +51,14 @@ const DEMO_ATTACKS = [
   },
 ];
 
+const PIPELINE_STAGES = [
+  { label: "1. User Input", desc: "Untrusted stream", icon: <Terminal size={14} /> },
+  { label: "2. Heuristic Filter", desc: "Regex & token scan", icon: <Filter size={14} /> },
+  { label: "3. Semantic Classifier", desc: "Intent isolation", icon: <Lock size={14} /> },
+  { label: "4. Context Barrier", desc: "System prompt guard", icon: <Shield size={14} /> },
+  { label: "5. Deterministic DB", desc: "DuckDB / Polars", icon: <KeyRound size={14} /> },
+];
+
 export default function PromptDefenseView() {
   const [selectedId, setSelectedId] = useState<number | null>(1);
   const [customInput, setCustomInput] = useState("");
@@ -94,79 +102,178 @@ export default function PromptDefenseView() {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-4 md:p-8 bg-[#fdfaf6]">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* ─── Header ──────────────────────────────────────────────────────── */}
-        <div className="bg-white border border-[#e2d5c3] rounded-2xl p-6 shadow-2xs flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#8c6e4e] bg-[#f5ecde] px-2.5 py-0.5 rounded-full border border-[#ebdccb]">
-                Active Defense Gateway
+    <div className="relative h-full overflow-y-auto px-4 py-6 md:px-8 bg-gradient-to-b from-[#fdfaf5] via-[#f8f3ea] to-[#eee4d6] select-none">
+      {/* ─── Ambient SANKET Gold Silk / Network Flow Curves & Watermark ──── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Soft Golden Flow Contours */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.20]"
+          viewBox="0 0 1200 800"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M -50,220 C 220,120 400,290 700,210 C 850,170 940,240 1250,190"
+            fill="none"
+            stroke="#d49952"
+            strokeWidth="1.2"
+          />
+          <path
+            d="M -50,240 C 240,140 420,310 720,230 C 870,190 960,260 1250,210"
+            fill="none"
+            stroke="#d49952"
+            strokeWidth="0.8"
+            strokeDasharray="6 6"
+          />
+          <path
+            d="M -20,480 C 260,410 480,510 780,420 C 900,380 980,440 1250,390"
+            fill="none"
+            stroke="#d49952"
+            strokeWidth="1.1"
+            strokeDasharray="4 4"
+          />
+          <path
+            d="M 60,60 C 260,180 540,80 820,160 C 940,200 980,140 1250,170"
+            fill="none"
+            stroke="#d49952"
+            strokeWidth="0.9"
+          />
+          {/* Subtle glowing ambient nodes */}
+          <circle cx="220" cy="180" r="3.5" fill="#f59e0b" opacity="0.65" />
+          <circle cx="700" cy="210" r="4" fill="#f59e0b" opacity="0.75" />
+          <circle cx="850" cy="170" r="3.5" fill="#f59e0b" opacity="0.65" />
+          <circle cx="1120" cy="220" r="4" fill="#f59e0b" opacity="0.65" />
+        </svg>
+
+        {/* ─── Classical Indian Judicial Courthouse Colonnade Watermark (Right side) ─── */}
+        <svg
+          className="absolute top-6 right-[-20px] sm:right-4 w-[640px] sm:w-[760px] h-[480px] sm:h-[560px] pointer-events-none opacity-[0.11] text-[#784419]"
+          viewBox="0 0 700 450"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          {/* Triangular Pediment */}
+          <polygon points="350,60 160,140 540,140" fill="currentColor" />
+          <polygon points="350,75 185,135 515,135" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          {/* Central Pediment Ashoka / Justice Emblem */}
+          <circle cx="350" cy="112" r="14" fill="none" stroke="currentColor" strokeWidth="2" />
+          <circle cx="350" cy="112" r="6" fill="currentColor" />
+          {/* Entablature frieze */}
+          <rect x="150" y="140" width="400" height="18" rx="2" fill="currentColor" />
+          <rect x="140" y="158" width="420" height="10" rx="1.5" fill="currentColor" />
+          {/* Neoclassic Courthouse Columns (8 Fluted Columns) */}
+          {[175, 222, 270, 317, 365, 412, 460, 507].map((colX) => (
+            <g key={colX}>
+              <rect x={colX - 8} y="168" width="28" height="8" rx="1.5" fill="currentColor" />
+              <rect x={colX - 4} y="176" width="20" height="155" fill="currentColor" />
+              <line x1={colX} y1="180" x2={colX} y2="326" stroke="#fdfaf5" strokeWidth="1.2" opacity="0.4" />
+              <line x1={colX + 6} y1="180" x2={colX + 6} y2="326" stroke="#fdfaf5" strokeWidth="1.2" opacity="0.4" />
+              <line x1={colX + 12} y1="180" x2={colX + 12} y2="326" stroke="#fdfaf5" strokeWidth="1.2" opacity="0.4" />
+              <rect x={colX - 8} y="331" width="28" height="10" rx="1.5" fill="currentColor" />
+            </g>
+          ))}
+          <rect x="130" y="341" width="440" height="14" rx="2" fill="currentColor" />
+          <rect x="110" y="355" width="480" height="16" rx="2.5" fill="currentColor" />
+          <rect x="90" y="371" width="520" height="18" rx="3" fill="currentColor" />
+        </svg>
+
+        {/* Ambient Warm Glow */}
+        <div
+          className="absolute top-0 right-1/4 w-[600px] h-[350px] pointer-events-none rounded-full blur-3xl opacity-50"
+          style={{
+            background: "radial-gradient(circle, rgba(245, 218, 168, 0.35) 0%, transparent 70%)",
+          }}
+        />
+
+        {/* Subtle Star Diamond at Bottom Right */}
+        <svg className="absolute bottom-6 right-6 w-12 h-12 pointer-events-none opacity-40 text-[#c49756]" viewBox="0 0 100 100">
+          <polygon points="50,15 62,38 85,50 62,62 50,85 38,62 15,50 38,38" fill="currentColor" />
+        </svg>
+      </div>
+
+      <div className="relative z-10 w-full max-w-[1440px] mx-auto space-y-5">
+        {/* ─── 1. Defense Header Card ───────────────────────────────────────── */}
+        <div className="bg-white/95 border border-[#dfd2bd] hover:border-[#c49756]/80 rounded-2xl p-5 md:p-6 shadow-[0_4px_20px_rgba(58,29,11,0.04)] transition-all flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#b45309] bg-[#fef3c7] px-3 py-1 rounded-full border border-[#fde68a]">
+                ACTIVE DEFENSE GATEWAY
               </span>
-              <span className="text-[10px] font-mono text-[#16a34a] bg-[#ecfdf5] border border-[#d1fae5] px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[10px] font-mono text-[#16a34a] bg-[#ecfdf5] border border-[#d1fae5] px-2.5 py-1 rounded-full font-bold">
                 MULTI-TIER DEFENSE
               </span>
             </div>
-            <h2 className="text-xl font-black text-[#231207] tracking-tight">
-              Adversarial Prompt-Injection & LLM Defense Barrier
+            <h2 className="text-xl md:text-2xl font-black text-[#231207] tracking-tight">
+              Adversarial Prompt-Injection &amp; LLM Defense Barrier
             </h2>
-            <p className="text-xs text-[#8c6e4e] mt-1">
+            <p className="text-xs text-[#8c6e4e] max-w-2xl leading-relaxed">
               SANKET isolates financial evidence and deterministic algorithms from conversational LLM manipulation attacks.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-right">
-            <div className="bg-[#fbf7f0] border border-[#e8d7c1] rounded-xl px-4 py-2 text-xs">
-              <div className="text-[10px] text-[#8c6e4e] uppercase font-semibold">Integrity Protocol</div>
-              <div className="font-mono font-bold text-[#16a34a]">IMMUTABLE LEDGER</div>
+          <div className="flex items-center gap-3">
+            <div className="bg-[#fdfbf7] border border-[#dfd2be] rounded-2xl px-4.5 py-2.5 flex items-center gap-3 shadow-2xs">
+              <div className="w-8 h-8 rounded-xl bg-[#fef3c7] border border-[#fde68a] flex items-center justify-center text-[#d97706] flex-shrink-0">
+                <Shield size={16} />
+              </div>
+              <div>
+                <div className="text-[10px] text-[#8c6e4e] uppercase font-bold tracking-wider">Integrity Protocol</div>
+                <div className="font-mono font-bold text-[#16a34a] text-xs">IMMUTABLE LEDGER</div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ─── Architecture Pipeline Diagram ───────────────────────────────── */}
-        <Card className="p-5 border-[#e2d5c3] bg-white shadow-2xs">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6b4e33] flex items-center gap-2">
-              <ShieldCheck size={14} className="text-[#16a34a]" />
-              5-Stage Defensive Ingestion Barrier
+        {/* ─── 2. Five-Stage Defensive Ingestion Barrier ───────────────────── */}
+        <Card className="p-5 md:p-6 border-[#dfd2bd] bg-white/95 shadow-xs hover:shadow-md transition-all">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#3d2415] flex items-center gap-2">
+              <ShieldCheck size={16} className="text-[#16a34a]" />
+              <span>5-STAGE DEFENSIVE INGESTION BARRIER</span>
             </h3>
-            <span className="text-[10px] font-mono text-[#8c6e4e]">ZERO-TRUST ISOLATION</span>
+            <span className="text-[10px] font-mono font-semibold text-[#8c6e4e] uppercase tracking-wider">
+              ZERO-TRUST ISOLATION
+            </span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-[#fbf7f0] border border-[#e8d7c1] rounded-xl text-xs">
-            {[
-              { label: "1. User Input", desc: "Untrusted stream", icon: <Terminal size={13} /> },
-              { label: "2. Heuristic Filter", desc: "Regex & token scan", icon: <Filter size={13} /> },
-              { label: "3. Semantic Classifier", desc: "Intent isolation", icon: <Lock size={13} /> },
-              { label: "4. Context Barrier", desc: "System prompt guard", icon: <Shield size={13} /> },
-              { label: "5. Deterministic DB", desc: "DuckDB / Polars", icon: <KeyRound size={13} /> },
-            ].map((step, i, arr) => (
-              <div key={step.label} className="flex items-center gap-2">
-                <div className="bg-white border border-[#dfd2be] rounded-lg p-2.5 text-center min-w-28 shadow-2xs">
-                  <div className="flex items-center justify-center gap-1.5 font-bold text-[#231207] text-[11px]">
-                    <span className="text-[#5c3d1e]">{step.icon}</span>
-                    <span>{step.label}</span>
+          {/* Clean Horizontal Pipeline Layout */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 p-3.5 bg-[#fbf7f0] border border-[#ebdccb] rounded-2xl">
+            {PIPELINE_STAGES.map((step, i, arr) => (
+              <div key={step.label} className="flex items-center gap-2.5 w-full sm:w-auto flex-1">
+                <div className="bg-white border border-[#dfd2be] hover:border-[#c49756] hover:shadow-xs rounded-xl p-3 text-center w-full shadow-2xs transition-all duration-200 hover:-translate-y-0.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#fbf5eb] border border-[#ecdcc9] flex items-center justify-center text-[#8c6239] mx-auto mb-1.5 shadow-2xs">
+                    {step.icon}
                   </div>
-                  <div className="text-[10px] text-[#8c6e4e] mt-0.5 font-medium">{step.desc}</div>
+                  <div className="font-bold text-[#231207] text-[11px] truncate">
+                    {step.label}
+                  </div>
+                  <div className="text-[10px] text-[#8c6e4e] mt-0.5 font-medium truncate">
+                    {step.desc}
+                  </div>
                 </div>
+
                 {i < arr.length - 1 && (
-                  <ArrowRight size={14} className="text-[#c49756] hidden sm:block flex-shrink-0" />
+                  <ArrowRight size={14} className="text-[#c49756] hidden sm:block flex-shrink-0 opacity-80" />
                 )}
               </div>
             ))}
           </div>
         </Card>
 
-        {/* ─── Demonstration Cases ─────────────────────────────────────────── */}
-        <div className="space-y-3">
+        {/* ─── 3. Simulated Adversarial Scenarios Header ─────────────────────── */}
+        <div className="space-y-3.5">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6b4e33]">
-              Simulated Adversarial Scenarios ({DEMO_ATTACKS.length})
+            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#231207] flex items-center gap-1.5">
+              <Sparkles size={14} className="text-[#c49756]" />
+              <span>SIMULATED ADVERSARIAL SCENARIOS ({DEMO_ATTACKS.length})</span>
             </h3>
-            <span className="text-[10px] text-[#8c6e4e]">Click any scenario to inspect telemetry</span>
+            <span className="text-xs text-[#8c6e4e] flex items-center gap-1">
+              <span>ⓘ Click any scenario to inspect telemetry</span>
+            </span>
           </div>
 
-          <div className="space-y-2.5">
+          {/* ─── Scenario Cards ────────────────────────────────────────────── */}
+          <div className="space-y-3">
             {DEMO_ATTACKS.map(attack => {
               const isSelected = selectedId === attack.id;
               const isBlocked = attack.status === "BLOCKED";
@@ -175,74 +282,111 @@ export default function PromptDefenseView() {
                 <Card
                   key={attack.id}
                   className={cn(
-                    "border transition-all duration-200 overflow-hidden shadow-2xs",
-                    isSelected ? "border-[#c49756] ring-1 ring-[#c49756]/20 bg-white" : "border-[#e2d5c3] bg-white hover:border-[#c49756]/60"
+                    "border transition-all duration-200 overflow-hidden shadow-xs",
+                    isSelected
+                      ? "border-[#c49756] ring-1 ring-[#c49756]/20 bg-white shadow-sm"
+                      : "border-[#dfd2bd] bg-white/95 hover:border-[#c49756]/60 hover:shadow-xs"
                   )}
                 >
+                  {/* Scenario Header Button */}
                   <button
+                    type="button"
                     onClick={() => setSelectedId(isSelected ? null : attack.id)}
-                    className="w-full p-4 text-left hover:bg-[#faf6f1]/60 transition-colors flex items-start gap-3.5"
+                    className="w-full p-4.5 sm:p-5 text-left hover:bg-[#faf6f1]/60 transition-colors flex flex-col gap-2.5 cursor-pointer"
                   >
-                    <div className={cn(
-                      "w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-2xs",
-                      isBlocked ? "bg-[#fef2f2] border border-[#fecaca] text-[#dc2626]" : "bg-[#f0fdf4] border border-[#bbf7d0] text-[#16a34a]"
-                    )}>
-                      {isBlocked ? <ShieldAlert size={15} /> : <CheckCircle2 size={15} />}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-2xs",
+                          isBlocked
+                            ? "bg-[#fef2f2] border border-[#fecaca] text-[#dc2626]"
+                            : "bg-[#f0fdf4] border border-[#bbf7d0] text-[#16a34a]"
+                        )}>
+                          {isBlocked ? <ShieldAlert size={17} /> : <CheckCircle2 size={17} />}
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm sm:text-base font-bold text-[#231207]">
+                            {attack.threat_type}
+                          </span>
+                          <span className={cn(
+                            "text-[10px] font-bold px-2 py-0.5 rounded-full border",
+                            attack.risk === "High"
+                              ? "bg-[#fef2f2] text-[#dc2626] border-[#fecaca]"
+                              : attack.risk === "Medium"
+                              ? "bg-[#fffbeb] text-[#d97706] border-[#fde68a]"
+                              : "bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]"
+                          )}>
+                            {attack.risk.toUpperCase()}
+                          </span>
+                          <span className={cn(
+                            "text-[10px] font-bold px-2.5 py-0.5 rounded-full border",
+                            isBlocked
+                              ? "bg-[#fef2f2] text-[#dc2626] border-[#fecaca]"
+                              : "bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]"
+                          )}>
+                            {attack.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-[#8c6e4e]">
+                        {isSelected ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </div>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-[#231207]">
-                          {attack.threat_type}
-                        </span>
-                        <RiskBadge level={attack.risk as any} size="sm" />
-                        <span className={cn(
-                          "text-[10px] font-bold px-2 py-0.5 rounded-full border",
-                          isBlocked
-                            ? "bg-[#fef2f2] text-[#b91c1c] border-[#fecaca]"
-                            : "bg-[#f0fdf4] text-[#15803d] border-[#bbf7d0]"
-                        )}>
-                          {attack.status}
-                        </span>
-                      </div>
-                      <p className="text-xs font-mono text-[#6b4e33] bg-[#faf6f0] px-2.5 py-1 rounded-md border border-[#ebdccb] truncate">
-                        {attack.incoming}
-                      </p>
-                    </div>
+                    {/* Preview Input Payload */}
+                    <pre className="w-full bg-[#fdfbf7] border border-[#dfd2be] rounded-xl px-3.5 py-2 font-mono text-xs text-[#4a301a] truncate">
+                      {attack.incoming}
+                    </pre>
                   </button>
 
-                  {/* Expanded Telemetry */}
+                  {/* ─── 4. Prompt Injection Case Card Detail (Expanded) ────── */}
                   {isSelected && (
-                    <div className="border-t border-[#ebdccb] p-4.5 space-y-3.5 bg-[#fdfbf8] text-xs">
+                    <div className="border-t border-[#ebdccb] p-5 sm:p-6 space-y-4 bg-[#fdfbf8] text-xs">
+                      {/* Adversarial Raw Input Payload Box */}
                       <div>
-                        <div className="text-[10px] text-[#8c6e4e] font-bold uppercase tracking-wider mb-1">
-                          Adversarial Raw Input Payload
+                        <div className="text-[10px] text-[#8c6e4e] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                          <FileText size={13} className="text-[#8c6239]" />
+                          <span>ADVERSARIAL RAW INPUT PAYLOAD</span>
                         </div>
-                        <pre className="p-3 bg-white border border-[#dfd2be] rounded-xl font-mono text-xs text-[#231207] whitespace-pre-wrap">
+                        <pre className="p-3.5 bg-white border border-[#dfd2be] rounded-xl font-mono text-xs text-[#231207] whitespace-pre-wrap leading-relaxed shadow-2xs">
                           {attack.incoming}
                         </pre>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="bg-[#fef2f2] border border-[#fecaca] p-3 rounded-xl">
-                          <div className="text-[10px] text-[#991b1b] font-bold uppercase tracking-wider mb-0.5">
-                            Detected Threat Vector
+                      {/* Two Balanced Cards: Threat Vector & Defensive Layer */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        {/* Left: Detected Threat Vector */}
+                        <div className="bg-[#fef2f2]/70 border border-[#fecaca] p-3.5 rounded-xl shadow-2xs">
+                          <div className="text-[10px] text-[#dc2626] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <AlertTriangle size={14} className="text-[#dc2626]" />
+                            <span>DETECTED THREAT VECTOR</span>
                           </div>
-                          <div className="text-xs text-[#7f1d1d] font-semibold">{attack.threat}</div>
+                          <div className="text-xs font-bold text-[#7f1d1d] leading-snug">
+                            {attack.threat}
+                          </div>
                         </div>
-                        <div className="bg-[#f0fdf4] border border-[#bbf7d0] p-3 rounded-xl">
-                          <div className="text-[10px] text-[#166534] font-bold uppercase tracking-wider mb-0.5">
-                            Defensive Layer Applied
+
+                        {/* Right: Defensive Layer Applied */}
+                        <div className="bg-[#f0fdf4]/70 border border-[#bbf7d0] p-3.5 rounded-xl shadow-2xs">
+                          <div className="text-[10px] text-[#16a34a] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <ShieldCheck size={14} className="text-[#16a34a]" />
+                            <span>DEFENSIVE LAYER APPLIED</span>
                           </div>
-                          <div className="text-xs text-[#14532d] font-semibold">{attack.defense}</div>
+                          <div className="text-xs font-semibold text-[#14532d] leading-snug">
+                            {attack.defense}
+                          </div>
                         </div>
                       </div>
 
+                      {/* System Containment Telemetry Log */}
                       <div>
-                        <div className="text-[10px] text-[#8c6e4e] font-bold uppercase tracking-wider mb-1">
-                          System Containment Telemetry Log
+                        <div className="text-[10px] text-[#8c6e4e] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                          <FileText size={13} className="text-[#8c6239]" />
+                          <span>SYSTEM CONTAINMENT TELEMETRY LOG</span>
                         </div>
-                        <div className="p-3 bg-[#faf4ec] border border-[#e8d7c1] rounded-xl font-mono text-[11px] text-[#5c3d1e] leading-relaxed">
+                        <div className="p-3.5 bg-[#fbf5eb] border border-[#dfd2be] border-l-4 border-l-[#d97706] rounded-xl font-mono text-[11px] text-[#4a2e16] leading-relaxed shadow-2xs">
                           {attack.response}
                         </div>
                       </div>
@@ -254,8 +398,8 @@ export default function PromptDefenseView() {
           </div>
         </div>
 
-        {/* ─── Interactive Defense Sandbox ─────────────────────────────────── */}
-        <Card className="p-5 md:p-6 border-[#e2d5c3] bg-white shadow-2xs space-y-4">
+        {/* ─── 5. Interactive Adversarial Defense Sandbox ──────────────────── */}
+        <Card className="p-5 md:p-6 border-[#dfd2bd] bg-white/95 shadow-xs hover:shadow-md transition-all space-y-4">
           <div>
             <h3 className="text-sm font-bold text-[#231207] uppercase tracking-wider">
               Interactive Adversarial Defense Sandbox
@@ -275,8 +419,9 @@ export default function PromptDefenseView() {
             ].map(preset => (
               <button
                 key={preset}
+                type="button"
                 onClick={() => applyPreset(preset)}
-                className="text-[10px] font-mono text-[#5c3d1e] bg-[#f5ecde] hover:bg-[#ebdccb] border border-[#ebdccb] px-2.5 py-1 rounded-lg transition-colors"
+                className="text-[10px] font-mono text-[#5c3d1e] bg-[#f5ecde] hover:bg-[#ebdccb] border border-[#ebdccb] px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
               >
                 {preset.slice(0, 32)}...
               </button>
@@ -320,6 +465,20 @@ export default function PromptDefenseView() {
             </div>
           )}
         </Card>
+
+        {/* ─── 6. Bottom Authority Badge & Divider ─────────────────────────── */}
+        <div className="w-full pt-4 pb-2 border-t border-[#dfd2be]/70 flex items-center justify-end text-[#967961]">
+          <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] tracking-widest uppercase font-semibold">
+            <span>INDIA</span>
+            <span className="opacity-40">|</span>
+            <span>FINANCIAL INTELLIGENCE</span>
+            <span className="opacity-40">|</span>
+            <span>SECURE</span>
+            <span className="opacity-40">|</span>
+            <span>ACCOUNTABLE</span>
+            <Shield size={11} className="ml-1 opacity-80 text-[#856547]" />
+          </div>
+        </div>
       </div>
     </div>
   );
