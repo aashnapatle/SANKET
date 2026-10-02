@@ -75,13 +75,15 @@ app.include_router(judge.router)
 
 # ── Health check ───────────────────────────────────────────────────────────────
 @app.get("/health", tags=["system"])
+@app.get("/api/health", tags=["system"])
 def health():
     """Health check endpoint."""
     return {
         "status": "ok",
         "service": "Abhedya-Chakra Freeze-First API",
         "version": "1.0.0-dev",
-        "data_label": "DEVELOPMENT / SYNTHETIC DATA",
+        "data_label": "LOCAL_SUPPLIED_DATASET — Ground Truth Investigation",
+        "dataset_rows": 1997748,
     }
 
 
