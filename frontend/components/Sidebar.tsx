@@ -3,7 +3,7 @@ import { useSanketStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import {
   Search, GitBranch, Clock, List, Shield, FileText,
-  Snowflake, FileSearch, BarChart3, Lock, ChevronLeft, ChevronRight,
+  Snowflake, BarChart3, Lock, ChevronLeft, ChevronRight,
   Settings, LogOut
 } from "lucide-react";
 
