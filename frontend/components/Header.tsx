@@ -2,11 +2,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useSanketStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { Menu, Bell, Scale, LogOut, User } from "lucide-react";
+import { Menu, Bell, LogOut, User } from "lucide-react";
 
 export default function Header() {
   const {
-    toggleSidebar, isJudgeMode, toggleJudgeMode, investigatorName, logout,
+    toggleSidebar, investigatorName, logout,
   } = useSanketStore();
 
   const [showProfile, setShowProfile] = useState(false);
@@ -34,28 +34,6 @@ export default function Header() {
 
       {/* ─── Right Controls ─────────────────────────── */}
       <div className="flex items-center gap-3">
-        {/* Judge Mode Toggle */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/90 border border-[#e2d5c3] rounded-lg flex-shrink-0 shadow-2xs">
-          <Scale size={13} className="text-[#5c3d1e]" />
-          <span className="text-xs font-medium text-[#5c3d1e] hidden sm:block">Judge Mode</span>
-          <button
-            onClick={toggleJudgeMode}
-            className={cn(
-              "relative w-9 h-5 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-[#c4a882] focus:ring-offset-1",
-              isJudgeMode ? "bg-[#5c3d1e]" : "bg-[#d4c4b0]"
-            )}
-            aria-checked={isJudgeMode}
-            role="switch"
-          >
-            <span
-              className={cn(
-                "absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300",
-                isJudgeMode && "translate-x-4"
-              )}
-            />
-          </button>
-        </div>
-
         {/* Notifications */}
         <button
           className="relative p-2 text-[#5c3d1e] hover:bg-[#ede5d8] rounded-lg transition-colors"

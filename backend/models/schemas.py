@@ -256,4 +256,53 @@ class InvestigationResponse(BaseModel):
         status="UNAVAILABLE_FROM_DATASET",
         reason="No crypto wallet or exchange indicators in dataset records."
     ))
+    detector_evaluations: List[Dict[str, Any]] = Field(default_factory=list)
+    court_ready_notices: List[Dict[str, Any]] = Field(default_factory=list)
     data_label: str = "LOCAL_SUPPLIED_DATASET — Ground Truth Investigation"
+
+
+# ─── Structured AI Analysis & Verification Models ────────────────────────────
+
+class AIMuleRiskAssessment(BaseModel):
+    account_id: str
+    assessed_risk_level: str
+    risk_score_concurrence: float
+    key_risk_drivers: List[str] = Field(default_factory=list)
+    explanation: str
+
+
+class AIFreezeRecommendation(BaseModel):
+    rank: int
+    account_id: str
+    bank: str
+    action: str
+    recommended_freeze_amount: float
+    justification: str
+
+
+class AIMoneyFlowSynthesis(BaseModel):
+    layer_breakdown: List[str] = Field(default_factory=list)
+    funnel_patterns: List[str] = Field(default_factory=list)
+    anomaly_flags: List[str] = Field(default_factory=list)
+
+
+class AIVerificationReport(BaseModel):
+    is_verified_deterministic: bool
+    ground_truth_score: float
+    ground_truth_recoverable: float
+    checked_math_discrepancies: List[str] = Field(default_factory=list)
+    confidence_score: float
+    fallback_mode_active: bool
+    fallback_reason: Optional[str] = None
+
+
+class AIStructuredAnalysisResponse(BaseModel):
+    account_id: str
+    model_used: str
+    executive_summary: str
+    risk_assessment: AIMuleRiskAssessment
+    freeze_recommendations: List[AIFreezeRecommendation] = Field(default_factory=list)
+    flow_synthesis: AIMoneyFlowSynthesis
+    verification_report: AIVerificationReport
+    generated_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+

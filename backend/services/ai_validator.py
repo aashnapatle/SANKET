@@ -153,21 +153,39 @@ def validate_narrative(
             )
 
     # 6. Token-stripping + raw digit check
-    # Strip approved placeholder tokens (e.g. "Rs.X", "AccID:X", "TXN:X")
+    # Strip approved placeholder tokens, timestamps, layer designations, scores, and counts
     # then verify no raw numeric digits remain — leftover digits = un-tokenized
     # hallucinated numbers that bypassed the currency-prefix filter.
     stripped = narrative
+    # Strip currency tokens
     stripped = re.sub(
-        r"(?:Rs\.?|₹|INR|AccID:|TXN:)\s*[\w,]+",
+        r"(?:Rs\.?|₹|INR|AccID:|TXN:)\s*[\w,.]+",
         " [TOKEN] ",
         stripped,
         flags=re.IGNORECASE,
     )
+    # Strip ISO timestamps and date strings (e.g. 2026-09-30, 10:01:00, 2026-09-30T10:01:00)
+    stripped = re.sub(r"\b\d{4}-\d{2}-\d{2}(?:[T\s]\d{2}:\d{2}:\d{2}(?:\.\d+)?)?\b", " [DATE] ", stripped)
+    stripped = re.sub(r"\b\d{2}:\d{2}(?:\:\d{2})?\b", " [TIME] ", stripped)
+    # Strip score expressions (e.g. 35/100, 35.0/100, 35.0 out of 100)
+    stripped = re.sub(r"\b\d+(?:\.\d+)?\s*(?:\/|\s*out of\s*)\s*100\b", " [SCORE] ", stripped, flags=re.IGNORECASE)
+    # Strip percentages and layer tags (e.g. 70%, 100%, L1, L2, L3, Layer 1, Rank 1, #1)
+    stripped = re.sub(r"\b\d+(?:\.\d+)?%", " [PCT] ", stripped)
+    stripped = re.sub(r"\b(?:Layer\s*|L|Rank\s*|#)\d+\b", " [LAYER_OR_RANK] ", stripped, flags=re.IGNORECASE)
+    # Strip simple counts followed by valid words (e.g. "5 accounts", "12 transactions", "4 hops")
+    stripped = re.sub(r"\b\d+\s+(?:accounts?|transactions?|hops?|nodes?|edges?|candidates?|reasons?|signals?|paragraphs?|minutes?|hours?|days?|times?)\b", " [COUNT] ", stripped, flags=re.IGNORECASE)
+
     # Also strip known transaction IDs and account IDs so legitimate references pass
     for acc in known_accounts:
         stripped = stripped.replace(acc, " [ACCT] ")
     for tid in known_txn_ids:
         stripped = stripped.replace(tid, " [TXN] ")
+    for amt in known_amounts:
+        # Strip exact numeric occurrences of known amounts
+        amt_int = int(amt) if amt == int(amt) else None
+        if amt_int is not None:
+            stripped = re.sub(rf"\b{amt_int}\b", " [KNOWN_AMT] ", stripped)
+        stripped = re.sub(rf"\b{amt:.2f}\b", " [KNOWN_AMT] ", stripped)
 
     if re.search(r"\d", stripped):
         issues.append(
