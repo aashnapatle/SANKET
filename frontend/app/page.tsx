@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useSanketStore } from "@/lib/store";
 import LoginPage from "@/components/LoginPage";
 import Sidebar from "@/components/Sidebar";
@@ -8,29 +9,33 @@ import SubtleNetworkBackground from "@/components/SubtleNetworkBackground";
 import { cn } from "@/lib/utils";
 
 export default function HomePage() {
-  const { isAuthenticated } = useSanketStore();
+  const { isAuthenticated, isJudgeMode } = useSanketStore();
+  const [mounted, setMounted] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
 
-  // ─── Not authenticated → Login ────────────────────────────────────────────
-  if (!isAuthenticated) {
+  useEffect(() => {
+    setMounted(true);
+    const token = localStorage.getItem("sanket_token");
+    if (token) {
+      setHasToken(true);
+      useSanketStore.setState({ isAuthenticated: true });
+    }
+  }, []);
+
+  if (!mounted) return null;
+
+  // Agar token ya authenticated dono me se koi bhi true hai toh dashboard dikhao
+  if (!isAuthenticated && !hasToken) {
     return <LoginPage />;
   }
 
-  // ─── Main Application Shell ───────────────────────────────────────────────
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f7f2ea]">
-      {/* Left Sidebar */}
+    <div className={cn("flex h-screen overflow-hidden bg-[#120804] text-[#f7ebd7]", isJudgeMode && "judge-theme")}>
+      <SubtleNetworkBackground />
       <Sidebar />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative">
-        {/* Top Header */}
+      <div className="flex flex-col flex-1 min-w-0 relative z-10">
         <Header />
-
-        {/* Global subtle intelligence network background */}
-        <SubtleNetworkBackground />
-
-        {/* Investigation Workspace */}
-        <main className="flex-1 overflow-hidden relative z-10">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <InvestigationConsole />
         </main>
       </div>
