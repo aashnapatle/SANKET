@@ -105,7 +105,7 @@ export const useSanketStore = create<SanketStore>((set, get) => ({
   // Search
   searchQuery: "",
   setSearchQuery: (q) => set({ searchQuery: q }),
-  recentSearches: ["ACC001235", "KKBK10000000", "ACC009988"],
+  recentSearches: ["SBIN10012624", "KKBK10013350", "ICIC10006430"],
   addRecentSearch: (q) => {
     const current = get().recentSearches;
     const updated = [q, ...current.filter(s => s !== q)].slice(0, 5);

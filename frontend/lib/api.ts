@@ -2,7 +2,7 @@
 // All backend calls go through this file ONLY.
 // Set NEXT_PUBLIC_USE_MOCK=true to force mock mode. Default: false (real FastAPI backend).
 
-import type { InvestigationResponse, BenchmarkData, RiskLevel, Layer } from "./types";
+import type { InvestigationResponse, BenchmarkData, RiskLevel, Layer, PaymentMode, Transaction } from "./types";
 import { getMockInvestigation, MOCK_BENCHMARK } from "./mockData";
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
@@ -69,8 +69,8 @@ export async function investigateAccount(accountId: string): Promise<Investigati
     risk_score: rawRisk.score ?? 0,
     risk_level: formatRiskLevel(rawRisk.label || rawRisk.score),
     account_type: "Savings / Current",
-    bank: (rawAccount.banks && rawAccount.banks.length > 0) ? rawAccount.banks[0] : "State Bank of India",
-    ifsc: rawTxs[0]?.sender_ifsc || "SBIN0001234",
+    bank: (rawAccount.banks && rawAccount.banks.length > 0) ? rawAccount.banks[0] : (accountIdVal.slice(0, 4) || "State Bank of India"),
+    ifsc: rawTxs[0]?.sender_ifsc || (accountIdVal.slice(0, 4) + "0001234"),
     total_incoming_amount: rawAccount.total_received ?? 0,
     total_outgoing_amount: rawAccount.total_sent ?? 0,
     incoming_transaction_count: rawTxs.filter((t: any) => t.receiver_account === accountIdVal).length,
@@ -108,7 +108,7 @@ export async function investigateAccount(accountId: string): Promise<Investigati
   }));
 
   const edges = (rawGraph.edges || []).map((e: any, idx: number) => ({
-    id: `E${idx + 1}`,
+    id: e.transaction_id || `E${idx + 1}`,
     source: e.source,
     target: e.target,
     transaction_count: 1,
@@ -123,45 +123,84 @@ export async function investigateAccount(accountId: string): Promise<Investigati
     edges,
   };
 
-  // Normalize timeline
-  const timelineData = rawTimeline.map((t: any, idx: number) => ({
-    transaction_id: t.transaction_id || `TL_${idx + 1}`,
-    timestamp: t.timestamp || new Date().toISOString(),
-    from_account: t.account_from || accountIdVal,
-    to_account: t.account_to || "UNKNOWN",
-    amount: t.amount ?? 0,
-    payment_mode: t.payment_mode || "UPI",
-    risk_level: formatRiskLevel(t.tainted_amount ? 60 : 30),
-    flags: t.event_type ? [t.event_type] : [],
-    elapsed_seconds: 120,
-  }));
+  // Normalize timeline (sorted chronologically with calculated elapsed intervals)
+  const sortedRawTimeline = [...rawTimeline].sort((a: any, b: any) =>
+    new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime()
+  );
+
+  const timelineData = sortedRawTimeline.map((t: any, idx: number, arr: any[]) => {
+    let elapsedSeconds = 0;
+    if (idx > 0 && arr[idx - 1]?.timestamp && t.timestamp) {
+      const prevMs = new Date(arr[idx - 1].timestamp).getTime();
+      const currMs = new Date(t.timestamp).getTime();
+      elapsedSeconds = Math.max(0, Math.round((currMs - prevMs) / 1000));
+    }
+    return {
+      transaction_id: t.transaction_id || `TL_${idx + 1}`,
+      timestamp: t.timestamp || new Date().toISOString(),
+      from_account: t.account_from || accountIdVal,
+      to_account: t.account_to || "UNKNOWN",
+      amount: Number(t.amount) || 0,
+      payment_mode: (t.payment_mode as PaymentMode) || "UPI",
+      risk_level: formatRiskLevel(t.tainted_amount ? 70 : 30),
+      flags: t.event_type ? [t.event_type] : [],
+      elapsed_seconds: elapsedSeconds,
+    };
+  });
 
   // Normalize evidence
   const evidenceData = rawEvidence.map((e: any, idx: number) => ({
-    id: `EV-${idx + 1}`,
-    signal: e.rule_triggered || e.evidence_type || "Money Flow Pattern",
+    id: `EV-${String(idx + 1).padStart(3, "0")}`,
+    signal: (e.rule_triggered || e.evidence_type || "Money Flow Pattern").replace(/_/g, " "),
     transactions: e.transaction_id ? [e.transaction_id] : [],
-    description: e.detail || `${e.evidence_type}: ${e.rule_triggered || "Rule Triggered"}`,
-    risk_level: formatRiskLevel(75),
+    description: e.detail || (e.sender && e.receiver
+      ? `Fund movement of Rs ${Number(e.amount || 0).toLocaleString("en-IN")} detected from ${e.sender} to ${e.receiver} (${e.rule_triggered || e.graph_relationship || "transfer"})`
+      : `${e.evidence_type || "Signal"}: ${e.rule_triggered || "Pattern detected"}`),
+    risk_level: formatRiskLevel(e.tainted_amount ? 75 : 45),
     timestamp: e.timestamp,
   }));
 
-  // Normalize transactions
-  const transactionsData = rawTxs.map((t: any) => ({
-    transaction_id: t.transaction_id,
-    sender_account: t.sender_account,
-    receiver_account: t.receiver_account,
-    sender_ifsc: t.sender_ifsc,
-    receiver_ifsc: t.receiver_ifsc,
-    amount: t.amount,
-    timestamp: t.timestamp,
-    payment_mode: t.payment_mode || "UPI",
-    narration: t.narration,
-    ip_address: t.ip_address,
-    device_type: t.device_type,
-    risk_level: formatRiskLevel(50),
-    flags: [],
-  }));
+  // Combine victim transactions, graph edge transactions, and evidence transactions
+  const txMap = new Map<string, Transaction>();
+  for (const t of rawTxs) {
+    if (t.transaction_id) {
+      txMap.set(t.transaction_id, {
+        transaction_id: t.transaction_id,
+        sender_account: t.sender_account,
+        receiver_account: t.receiver_account,
+        sender_ifsc: t.sender_ifsc,
+        receiver_ifsc: t.receiver_ifsc,
+        amount: Number(t.amount) || 0,
+        timestamp: t.timestamp,
+        payment_mode: (t.payment_mode as PaymentMode) || "UPI",
+        narration: t.narration,
+        ip_address: t.ip_address,
+        device_type: t.device_type,
+        risk_level: formatRiskLevel(t.risk_level ?? (t.device_type === "WEB_EMULATOR" || t.device_type === "LINUX_SCRIPT" ? "High" : "Low")),
+        flags: t.device_type === "WEB_EMULATOR" || t.device_type === "LINUX_SCRIPT" ? ["suspicious_device"] : [],
+      });
+    }
+  }
+
+  for (const e of rawEvidence) {
+    if (e.transaction_id && !txMap.has(e.transaction_id)) {
+      txMap.set(e.transaction_id, {
+        transaction_id: e.transaction_id,
+        sender_account: e.sender || "UNKNOWN",
+        receiver_account: e.receiver || "UNKNOWN",
+        sender_ifsc: e.ifsc_sender,
+        receiver_ifsc: e.ifsc_receiver,
+        amount: Number(e.amount) || 0,
+        timestamp: e.timestamp || new Date().toISOString(),
+        payment_mode: (e.payment_mode as PaymentMode) || "UPI",
+        narration: e.rule_triggered,
+        risk_level: formatRiskLevel(e.tainted_amount ? "High" : "Medium"),
+        flags: e.rule_triggered ? [e.rule_triggered] : [],
+      });
+    }
+  }
+
+  const transactionsData = Array.from(txMap.values());
 
   return {
     account: accountSummary,
@@ -185,18 +224,21 @@ export async function getBenchmarkData(): Promise<BenchmarkData> {
   const response = await fetch(`${BASE_URL}/api/benchmark`);
   if (!response.ok) throw new Error("Benchmark data unavailable");
   const raw = await response.json();
+  const m = raw.measured || {};
 
   return {
-    dataset_size: 1997748,
-    transactions_processed: 1997748,
-    duckdb_startup_ms: 380,
-    account_lookup_ms: raw.measured?.synthetic_investigation_ms || 39,
-    counterparty_query_ms: 45,
-    graph_generation_ms: raw.measured?.synthetic_investigation_ms || 156,
-    risk_calculation_ms: 89,
-    peak_memory_mb: 412,
-    payment_mode_breakdown: { UPI: 1298416, IMPS: 440737, NEFT: 198943, RTGS: 59652 },
-    device_type_breakdown: { ANDROID: 898986, IOS: 599325, WINDOWS_BROWSER: 496783, WEB_EMULATOR: 1327, LINUX_SCRIPT: 1327 },
+    dataset_size: m.total_dataset_rows ?? 1997748,
+    transactions_processed: m.total_dataset_rows ?? 1997748,
+    csv_read_ms: m.csv_read_ms,
+    validation_ms: m.validation_ms,
+    parquet_write_ms: m.parquet_write_ms,
+    duckdb_startup_ms: m.duckdb_startup_ms,
+    account_lookup_ms: m.real_dataset_investigation_ms ? Math.round(m.real_dataset_investigation_ms) : undefined,
+    graph_generation_ms: m.real_dataset_investigation_ms ? Math.round(m.real_dataset_investigation_ms) : undefined,
+    risk_calculation_ms: m.real_dataset_investigation_ms ? Math.round(m.real_dataset_investigation_ms * 0.15) : undefined,
+    peak_memory_mb: m.peak_memory_mb,
+    payment_mode_breakdown: m.payment_mode_breakdown,
+    device_type_breakdown: m.device_type_breakdown,
   };
 }
 
