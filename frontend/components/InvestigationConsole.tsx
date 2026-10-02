@@ -82,46 +82,47 @@ export default function InvestigationConsole() {
     <div className="flex flex-col h-full overflow-hidden bg-[#fdfaf6]">
       {/* ─── Summary Strip ──────────────────────────────────────────────────── */}
       <div className={cn(
-        "flex items-stretch gap-3 px-4 py-3 border-b border-[#e2d5c3] bg-[#fbf7f0]/95 flex-shrink-0",
-        "overflow-x-auto select-none shadow-2xs"
+        "flex items-stretch gap-1.5 2xl:gap-2 px-3 py-2 border-b border-[#e2d5c3] bg-[#fbf7f0]/95 flex-shrink-0",
+        "w-full overflow-x-auto xl:overflow-x-visible select-none shadow-2xs"
       )}>
         {/* Quick Back to Search */}
         <button
           onClick={() => setActiveNav("investigation")}
-          className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#dfd2be] rounded-2xl hover:border-[#c49756] hover:bg-[#faf4ec] text-[#6b4e33] transition-all duration-200 text-xs font-semibold flex-shrink-0 shadow-2xs active:scale-95"
+          className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-white border border-[#dfd2be] rounded-xl hover:border-[#c49756] hover:bg-[#faf4ec] text-[#6b4e33] transition-all duration-200 text-xs font-semibold flex-shrink-0 shadow-2xs active:scale-95 whitespace-nowrap"
           title="Return to investigation search"
         >
-          <ArrowLeft size={13} />
-          <span className="hidden sm:inline">New Search</span>
+          <ArrowLeft size={13} className="flex-shrink-0" />
+          <span>New Search</span>
         </button>
 
         {/* Account card */}
-        <div className="flex items-center gap-3 bg-white border border-[#dfd2be] rounded-2xl px-4 py-2.5 min-w-48 shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-[#f5ecde] border border-[#ebdccb] flex items-center justify-center text-[#5c3d1e] shadow-2xs flex-shrink-0">
-            <Landmark size={15} />
+        <div className="flex items-center gap-2 bg-white border border-[#dfd2be] rounded-xl px-2.5 py-1.5 flex-[1.2] min-w-0 shadow-2xs">
+          <div className="w-7 h-7 rounded-lg bg-[#f5ecde] border border-[#ebdccb] flex items-center justify-center text-[#5c3d1e] shadow-2xs flex-shrink-0">
+            <Landmark size={14} />
           </div>
-          <div className="min-w-0">
-            <div className="text-[10px] text-[#8c6e4e] font-semibold uppercase tracking-wider">Account</div>
-            <div className="text-sm font-bold text-[#231207] font-mono truncate">{account.account_id}</div>
-            {account.bank && <div className="text-[10px] text-[#8c6e4e] truncate font-medium">{account.bank}</div>}
+          <div className="min-w-0 flex-1">
+            <div className="text-[9px] text-[#8c6e4e] font-bold uppercase tracking-wider leading-tight">Account</div>
+            <div className="text-xs font-bold text-[#231207] font-mono truncate" title={account.account_id}>{account.account_id}</div>
+            {account.bank && <div className="text-[10px] text-[#8c6e4e] truncate font-medium leading-tight" title={account.bank}>{account.bank}</div>}
           </div>
         </div>
 
         {/* Risk Score */}
-        <div className="flex items-center gap-3 bg-white border border-[#dfd2be] rounded-2xl px-4 py-2.5 min-w-36 shadow-2xs">
-          <div>
-            <div className="text-[10px] text-[#8c6e4e] font-semibold uppercase tracking-wider">Risk Score</div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-lg font-black tracking-tight" style={{ color: getRiskColor(risk.level) }}>
-                {risk.score} <span className="text-xs font-medium text-[#8c6e4e]">/ 100</span>
+        <div className="flex items-center justify-between gap-1.5 bg-white border border-[#dfd2be] rounded-xl px-2.5 py-1.5 flex-[0.95] min-w-0 shadow-2xs">
+          <div className="min-w-0">
+            <div className="text-[9px] text-[#8c6e4e] font-bold uppercase tracking-wider leading-tight">Risk Score</div>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-sm font-black tracking-tight leading-none" style={{ color: getRiskColor(risk.level) }}>
+                {risk.score}
               </span>
+              <span className="text-[10px] font-medium text-[#8c6e4e]">/100</span>
             </div>
             <div className="mt-0.5">
               <RiskBadge level={risk.level} size="sm" pulse={risk.level === "High"} />
             </div>
           </div>
           {/* Mini circular gauge */}
-          <svg viewBox="0 0 36 36" className="w-10 h-10 -rotate-90 flex-shrink-0">
+          <svg viewBox="0 0 36 36" className="w-7 h-7 -rotate-90 flex-shrink-0">
             <circle cx="18" cy="18" r="14" fill="none" stroke="#f0e8dc" strokeWidth="3.5" />
             <circle cx="18" cy="18" r="14" fill="none"
               stroke={getRiskColor(risk.level)}
@@ -133,58 +134,76 @@ export default function InvestigationConsole() {
         </div>
 
         {/* Layer */}
-        <div className="flex items-center gap-3 bg-white border border-[#dfd2be] rounded-2xl px-4 py-2.5 min-w-32 shadow-2xs">
-          <div>
-            <div className="text-[10px] text-[#8c6e4e] font-semibold uppercase tracking-wider mb-1">Layer</div>
+        <div className="flex items-center bg-white border border-[#dfd2be] rounded-xl px-2.5 py-1.5 flex-[0.75] min-w-0 shadow-2xs">
+          <div className="min-w-0">
+            <div className="text-[9px] text-[#8c6e4e] font-bold uppercase tracking-wider mb-1 leading-tight">Layer</div>
             <LayerBadge layer={account.layer} />
           </div>
         </div>
 
         {/* Incoming */}
-        <div className="flex items-center gap-3 bg-white border border-[#dfd2be] rounded-2xl px-4 py-2.5 min-w-44 shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-[#ecfdf5] border border-[#d1fae5] flex items-center justify-center text-[#16a34a] flex-shrink-0 shadow-2xs">
-            <TrendingUp size={15} />
+        <div className="flex items-center gap-2 bg-white border border-[#dfd2be] rounded-xl px-2.5 py-1.5 flex-[1.1] min-w-0 shadow-2xs">
+          <div className="w-7 h-7 rounded-lg bg-[#ecfdf5] border border-[#d1fae5] flex items-center justify-center text-[#16a34a] flex-shrink-0 shadow-2xs">
+            <TrendingUp size={14} />
           </div>
-          <div>
-            <div className="text-[10px] text-[#8c6e4e] font-semibold uppercase tracking-wider">Incoming</div>
-            <div className="text-sm font-bold text-[#231207]">{formatCurrencyFull(account.total_incoming_amount)}</div>
-            <div className="text-[10px] text-[#8c6e4e] font-medium">{account.incoming_transaction_count} txns</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[9px] text-[#8c6e4e] font-bold uppercase tracking-wider leading-tight">Incoming</div>
+            <div className="text-xs font-bold text-[#231207] truncate" title={formatCurrencyFull(account.total_incoming_amount)}>
+              {formatCurrencyFull(account.total_incoming_amount)}
+            </div>
+            <div className="text-[10px] text-[#8c6e4e] font-medium leading-tight truncate">
+              {account.incoming_transaction_count} txns
+            </div>
           </div>
         </div>
 
         {/* Outgoing */}
-        <div className="flex items-center gap-3 bg-white border border-[#dfd2be] rounded-2xl px-4 py-2.5 min-w-44 shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-[#fef2f2] border border-[#fee2e2] flex items-center justify-center text-[#dc2626] flex-shrink-0 shadow-2xs">
-            <TrendingDown size={15} />
+        <div className="flex items-center gap-2 bg-white border border-[#dfd2be] rounded-xl px-2.5 py-1.5 flex-[1.1] min-w-0 shadow-2xs">
+          <div className="w-7 h-7 rounded-lg bg-[#fef2f2] border border-[#fee2e2] flex items-center justify-center text-[#dc2626] flex-shrink-0 shadow-2xs">
+            <TrendingDown size={14} />
           </div>
-          <div>
-            <div className="text-[10px] text-[#8c6e4e] font-semibold uppercase tracking-wider">Outgoing</div>
-            <div className="text-sm font-bold text-[#231207]">{formatCurrencyFull(account.total_outgoing_amount)}</div>
-            <div className="text-[10px] text-[#8c6e4e] font-medium">{account.outgoing_transaction_count} txns</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[9px] text-[#8c6e4e] font-bold uppercase tracking-wider leading-tight">Outgoing</div>
+            <div className="text-xs font-bold text-[#231207] truncate" title={formatCurrencyFull(account.total_outgoing_amount)}>
+              {formatCurrencyFull(account.total_outgoing_amount)}
+            </div>
+            <div className="text-[10px] text-[#8c6e4e] font-medium leading-tight truncate">
+              {account.outgoing_transaction_count} txns
+            </div>
           </div>
         </div>
 
         {/* Connected */}
-        <div className="flex items-center gap-3 bg-white border border-[#dfd2be] rounded-2xl px-4 py-2.5 min-w-36 shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-[#f5ecde] border border-[#ebdccb] flex items-center justify-center text-[#5c3d1e] flex-shrink-0 shadow-2xs">
-            <Users size={15} />
+        <div className="flex items-center gap-2 bg-white border border-[#dfd2be] rounded-xl px-2.5 py-1.5 flex-[1.05] min-w-0 shadow-2xs">
+          <div className="w-7 h-7 rounded-lg bg-[#f5ecde] border border-[#ebdccb] flex items-center justify-center text-[#5c3d1e] flex-shrink-0 shadow-2xs">
+            <Users size={14} />
           </div>
-          <div>
-            <div className="text-[10px] text-[#8c6e4e] font-semibold uppercase tracking-wider">Connected</div>
-            <div className="text-base font-bold text-[#231207]">{account.connected_accounts} accounts</div>
-            <div className="text-[10px] text-[#8c6e4e] font-medium">{investigation.graph.nodes.filter(n => n.layer !== "L0").length} sub-nodes</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[9px] text-[#8c6e4e] font-bold uppercase tracking-wider leading-tight">Connected</div>
+            <div className="text-xs font-bold text-[#231207] truncate">
+              {account.connected_accounts} accounts
+            </div>
+            <div className="text-[10px] text-[#8c6e4e] font-medium leading-tight truncate">
+              {investigation.graph.nodes.filter(n => n.layer !== "L0").length} sub-nodes
+            </div>
           </div>
         </div>
 
         {/* Risk signals quick summary */}
-        {risk.signals.length > 0 && (
-          <div className="flex items-center gap-2.5 bg-[#fef2f2] border border-[#fecaca] rounded-2xl px-4 py-2.5 min-w-64 shadow-2xs">
-            <AlertTriangle size={15} className="text-[#dc2626] flex-shrink-0" />
-            <div className="min-w-0">
-              <div className="text-[10px] text-[#991b1b] font-bold uppercase tracking-wider mb-1">Active Risk Signals</div>
-              <div className="flex flex-wrap gap-1">
+        {!judgeMode && risk.signals.length > 0 && (
+          <div className="flex items-center gap-2 bg-[#fef2f2] border border-[#fecaca] rounded-xl px-2.5 py-1.5 flex-[1.4] min-w-0 shadow-2xs">
+            <AlertTriangle size={14} className="text-[#dc2626] flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="text-[9px] text-[#991b1b] font-bold uppercase tracking-wider mb-0.5 leading-tight">
+                Active Risk Signals
+              </div>
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
                 {risk.signals.map(sig => (
-                  <span key={sig.id} className="text-[10px] bg-white border border-[#fca5a5] text-[#b91c1c] px-2 py-0.5 rounded-full font-bold shadow-2xs">
+                  <span
+                    key={sig.id}
+                    className="text-[9px] bg-white border border-[#fca5a5] text-[#b91c1c] px-1.5 py-0.5 rounded-full font-bold shadow-2xs whitespace-nowrap flex-shrink-0"
+                    title={`${sig.name} (+${sig.score})`}
+                  >
                     {sig.name} +{sig.score}
                   </span>
                 ))}
