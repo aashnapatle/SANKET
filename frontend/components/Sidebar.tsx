@@ -59,17 +59,33 @@ export default function Sidebar() {
 
       {/* ─── Branding ────────────────────────────────────── */}
       <div className={cn(
-        "flex items-center py-5 px-4 border-b border-[#2b170c] flex-shrink-0 relative z-10",
-        isSidebarCollapsed ? "justify-center" : "gap-3"
+        "flex items-center py-4 px-3.5 border-b border-[#2b170c] flex-shrink-0 relative z-10 transition-all",
+        isSidebarCollapsed ? "justify-center px-2" : "gap-3"
       )}>
-        {/* Logo mark */}
-        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-[#c17f3a] to-[#8c5621] border border-[#d49952]/60 flex items-center justify-center font-bold text-white text-sm shadow-[0_0_14px_rgba(212,153,82,0.32)]">
-          S
+        {/* SANKET Shield Logo */}
+        <div className="relative flex-shrink-0 flex items-center justify-center">
+          <img
+            src="/sanket-logo.png"
+            alt="SANKET Emblem"
+            className={cn(
+              "object-contain transition-all duration-300 filter drop-shadow-[0_0_10px_rgba(196,151,86,0.38)]",
+              isSidebarCollapsed ? "w-8 h-8" : "w-10 h-10"
+            )}
+          />
         </div>
         {!isSidebarCollapsed && (
-          <div>
-            <div className="text-[#f7ebd7] font-bold text-base tracking-wide leading-none">SANKET</div>
-            <div className="text-[#967756] text-[10px] mt-1 leading-tight font-medium">Financial Investigation<br />Console</div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[#fcf8f2] font-black text-base tracking-wider leading-none font-mono">
+                SANKET
+              </span>
+              <span className="text-[9px] font-bold text-[#c49756] tracking-widest uppercase bg-[#2e190e] border border-[#522f18] px-1.5 py-0.5 rounded">
+                संकेत
+              </span>
+            </div>
+            <div className="text-[#a88a68] text-[10px] mt-1 leading-tight font-medium tracking-wide">
+              Financial Investigation Console
+            </div>
           </div>
         )}
       </div>

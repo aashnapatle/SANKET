@@ -352,6 +352,11 @@ export default function InvestigationLanding() {
       <div className="relative z-10 max-w-4xl w-full mx-auto flex flex-col items-center text-center mt-3 md:mt-7">
         {/* Central SANKET Branding with continuous subtle floating animation & soft gold glow */}
         <div className="flex flex-col items-center">
+          <img
+            src="/sanket-logo.png"
+            alt="SANKET Emblem"
+            className="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-2 filter drop-shadow-[0_4px_20px_rgba(212,153,82,0.35)]"
+          />
           <h1
             className="sanket-brand-float text-6xl sm:text-7xl md:text-8xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-[#2a1408] via-[#1a0a03] to-[#3d2010] select-none"
             style={{

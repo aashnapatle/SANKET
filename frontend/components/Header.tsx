@@ -6,7 +6,11 @@ import { Menu, Bell, LogOut, User } from "lucide-react";
 
 export default function Header() {
   const {
+<<<<<<< HEAD
     toggleSidebar, investigatorName, logout,
+=======
+    toggleSidebar, isSidebarCollapsed, isJudgeMode, toggleJudgeMode, investigatorName, logout,
+>>>>>>> f4302e2 (added logo)
   } = useSanketStore();
 
   const [showProfile, setShowProfile] = useState(false);
@@ -23,14 +27,28 @@ export default function Header() {
 
   return (
     <header className="h-14 flex items-center justify-between px-5 bg-[#fdfaf6] border-b border-[#ebdccb]/80 flex-shrink-0 z-20 sticky top-0">
-      {/* ─── Left: Sidebar Toggle ───────────────────── */}
-      <button
-        onClick={toggleSidebar}
-        className="text-[#5c3d1e] hover:bg-[#ede5d8] rounded-lg p-1.5 transition-colors flex-shrink-0"
-        aria-label="Toggle sidebar"
-      >
-        <Menu size={18} />
-      </button>
+      {/* ─── Left: Sidebar Toggle & Brand Mark ───────── */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggleSidebar}
+          className="text-[#5c3d1e] hover:bg-[#ede5d8] rounded-lg p-1.5 transition-colors flex-shrink-0"
+          aria-label="Toggle sidebar"
+        >
+          <Menu size={18} />
+        </button>
+        {isSidebarCollapsed && (
+          <div className="flex items-center gap-2 pl-2 border-l border-[#ebdccb] animate-in fade-in duration-200">
+            <img
+              src="/sanket-logo.png"
+              alt="SANKET"
+              className="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(196,151,86,0.3)]"
+            />
+            <span className="text-xs font-black text-[#231207] tracking-wider font-mono">
+              SANKET
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* ─── Right Controls ─────────────────────────── */}
       <div className="flex items-center gap-3">
